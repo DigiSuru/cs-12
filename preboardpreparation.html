@@ -11,18 +11,10 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Google Fonts: Poppins for a more modern, friendly vibe -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Poppins (English) and Noto Sans Devanagari (Hindi) -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Chosen Palette: Vibrant Learning -->
-    <!-- 
-        Background: #F3F4F6 (Cool Gray)
-        Primary: #4F46E5 (Indigo) -> Header/Accents
-        Secondary: #F59E0B (Amber) -> Highlights/Buttons
-        Success: #10B981 (Emerald)
-        Error: #EF4444 (Red)
-        Text: #1F2937 (Gray 800)
-    -->
     <script>
         tailwind.config = {
             theme: {
@@ -37,10 +29,10 @@
                         card: '#FFFFFF',
                         sage: '#10B981', // Emerald 500
                         clay: '#EF4444', // Red 500
-                        code: '#EFF6FF'  // Blue 50
+                        code: '#1E293B'  // Slate 800 for code bg
                     },
                     fontFamily: {
-                        sans: ['Poppins', 'sans-serif'],
+                        sans: ['Poppins', 'Noto Sans Devanagari', 'sans-serif'],
                     }
                 }
             }
@@ -48,36 +40,20 @@
     </script>
 
     <style>
-        /* Chart Container Styling as per requirements */
         .chart-container {
             position: relative;
             width: 100%;
-            max-width: 600px; /* Constraint for large screens */
+            max-width: 600px;
             margin-left: auto;
             margin-right: auto;
-            height: 300px; /* Base height */
-            max-height: 400px; /* Max height */
+            height: 300px;
+            max-height: 400px;
         }
         
         @media (min-width: 768px) {
             .chart-container {
                 height: 350px;
             }
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #F3F4F6; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #818CF8; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #4F46E5; 
         }
 
         /* Animation utilities */
@@ -90,505 +66,591 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .correct-anim {
-            animation: bounceGreen 0.6s;
-        }
-        
-        @keyframes bounceGreen {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        
-        /* Gradient Text Utility */
         .text-gradient {
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-image: linear-gradient(to right, #4F46E5, #9333EA);
         }
+
+        /* Language Toggle Switch */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #4F46E5;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #4F46E5;
+        }
+        
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
     </style>
 </head>
-<body class="bg-bg text-text min-h-screen flex flex-col">
-
-    <!-- Application Structure Plan:
-         1. Header: Colorful Gradient background with White text/tabs.
-         2. Main Content:
-            - Dashboard: Colorful cards and charts.
-            - Quiz (Sec A): Modern card interface with colorful feedback.
-            - Flashcards (Sec B): Interactive cards.
-            - Theory: Cards with colored accents.
-            - Analytics: Vibrant charts.
-         3. Footer: Simple credits.
-    -->
+<body class="bg-bg text-text min-h-screen flex flex-col font-sans">
 
     <!-- Header -->
     <header class="bg-gradient-to-r from-primary to-purple-600 shadow-lg sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
+                <!-- Branding -->
                 <div class="flex items-center text-white">
-                    <span class="text-2xl font-bold tracking-tight">CS PrepHub <span class="text-sm font-normal text-indigo-200 bg-white/20 px-2 py-0.5 rounded-full ml-2">RBSE '26</span></span>
+                    <span class="text-xl md:text-2xl font-bold tracking-tight">CS PrepHub <span class="text-xs md:text-sm font-normal text-indigo-200 bg-white/20 px-2 py-0.5 rounded-full ml-2">RBSE '26</span></span>
                 </div>
-                <!-- Desktop Nav -->
-                <nav class="hidden md:flex space-x-2">
-                    <button onclick="switchTab('dashboard')" class="nav-btn px-4 py-2 rounded-full text-sm font-medium transition-all duration-200" data-tab="dashboard">Dashboard</button>
-                    <button onclick="switchTab('mcq')" class="nav-btn px-4 py-2 rounded-full text-sm font-medium transition-all duration-200" data-tab="mcq">Quiz (Sec A)</button>
-                    <button onclick="switchTab('fillups')" class="nav-btn px-4 py-2 rounded-full text-sm font-medium transition-all duration-200" data-tab="fillups">Fill-ups</button>
-                    <button onclick="switchTab('theory')" class="nav-btn px-4 py-2 rounded-full text-sm font-medium transition-all duration-200" data-tab="theory">Theory & Code</button>
-                    <button onclick="switchTab('analytics')" class="nav-btn px-4 py-2 rounded-full text-sm font-medium transition-all duration-200" data-tab="analytics">Analytics</button>
-                </nav>
-                <!-- Mobile Menu Button -->
-                <div class="md:hidden flex items-center">
-                    <button id="mobile-menu-btn" class="text-white hover:bg-white/20 p-2 rounded-md focus:outline-none transition-colors">
-                        <span class="text-2xl">☰</span>
-                    </button>
+
+                <!-- Controls: Language & Nav -->
+                <div class="flex items-center space-x-4">
+                    <!-- Language Toggle -->
+                    <div class="flex items-center bg-black/20 rounded-full p-1">
+                        <button onclick="setLanguage('en')" id="btn-en" class="px-3 py-1 rounded-full text-xs font-bold transition-all bg-white text-primary">EN</button>
+                        <button onclick="setLanguage('hi')" id="btn-hi" class="px-3 py-1 rounded-full text-xs font-bold transition-all text-white hover:bg-white/10">हिंदी</button>
+                    </div>
+
+                    <!-- Desktop Nav -->
+                    <nav class="hidden lg:flex space-x-2">
+                        <button onclick="switchTab('dashboard')" class="nav-btn px-3 py-2 rounded-full text-xs font-medium transition-all duration-200" data-tab="dashboard" data-i18n="nav_dashboard">Dashboard</button>
+                        <button onclick="switchTab('mcq')" class="nav-btn px-3 py-2 rounded-full text-xs font-medium transition-all duration-200" data-tab="mcq" data-i18n="nav_mcq">Quiz (Sec A)</button>
+                        <button onclick="switchTab('fillups')" class="nav-btn px-3 py-2 rounded-full text-xs font-medium transition-all duration-200" data-tab="fillups" data-i18n="nav_fillups">Fill-ups</button>
+                        <button onclick="switchTab('theory')" class="nav-btn px-3 py-2 rounded-full text-xs font-medium transition-all duration-200" data-tab="theory" data-i18n="nav_theory">Theory & Code</button>
+                        <button onclick="switchTab('analytics')" class="nav-btn px-3 py-2 rounded-full text-xs font-medium transition-all duration-200" data-tab="analytics" data-i18n="nav_analytics">Analytics</button>
+                    </nav>
+
+                    <!-- Mobile Menu Button -->
+                    <div class="lg:hidden flex items-center">
+                        <button id="mobile-menu-btn" class="text-white hover:bg-white/20 p-2 rounded-md focus:outline-none transition-colors">
+                            <span class="text-2xl">☰</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
         <!-- Mobile Nav Panel -->
-        <div id="mobile-menu" class="hidden md:hidden bg-indigo-700 shadow-inner">
+        <div id="mobile-menu" class="hidden lg:hidden bg-indigo-700 shadow-inner">
             <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                <button onclick="switchTab('dashboard')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/10">Dashboard</button>
-                <button onclick="switchTab('mcq')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/10">Quiz (Sec A)</button>
-                <button onclick="switchTab('fillups')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/10">Fill-ups (Sec B)</button>
-                <button onclick="switchTab('theory')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/10">Theory & Code</button>
-                <button onclick="switchTab('analytics')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/10">Analytics</button>
+                <button onclick="switchTab('dashboard')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/10" data-i18n="nav_dashboard">Dashboard</button>
+                <button onclick="switchTab('mcq')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/10" data-i18n="nav_mcq">Quiz (Sec A)</button>
+                <button onclick="switchTab('fillups')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/10" data-i18n="nav_fillups">Fill-ups</button>
+                <button onclick="switchTab('theory')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/10" data-i18n="nav_theory">Theory & Code</button>
+                <button onclick="switchTab('analytics')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/10" data-i18n="nav_analytics">Analytics</button>
             </div>
         </div>
     </header>
 
     <!-- Main Content Area -->
     <main id="app-content" class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        <!-- Views will be injected here via JS -->
+        <!-- Views injected via JS -->
     </main>
 
     <!-- Footer -->
     <footer class="bg-white border-t border-gray-200 mt-auto">
         <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-            <p class="text-center text-sm text-text/60">
-                Made for <span class="font-bold text-primary">Class 12 CS (083)</span> • RBSE 2026 Blueprint
+            <p class="text-center text-sm text-text/60" data-i18n="footer_text">
+                Made for Class 12 CS (083) • RBSE 2026 Blueprint
             </p>
         </div>
     </footer>
 
+    <!-- Chosen Palette: Vibrant Learning -->
+    <!-- Application Structure Plan: Dashboard, Quiz, Fillups, Theory (Accordion), Analytics. -->
+    <!-- Visualization & Content Choices: Chart.js for stats, Translation logic for Hindi/English. -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 
     <script>
-        // --- DATA STORE ---
+        // --- TRANSLATION STORE ---
+        const i18n = {
+            en: {
+                nav_dashboard: "Dashboard",
+                nav_mcq: "Quiz (Sec A)",
+                nav_fillups: "Fill-ups (Sec B)",
+                nav_theory: "Theory & Code",
+                nav_analytics: "Analytics",
+                welcome_title: "Welcome, Future Topper!",
+                welcome_subtitle: "Your Master Preboard Kit is ready. 110 questions covering Python, SQL, and Networks.",
+                teacher_note_title: "Teacher's Strategy Note",
+                teacher_note_text: "\"Start with Section A to warm up your logic. Move to Theory for deep concepts, and save Coding for when you're fully focused.\"",
+                stat_mcq: "Practice MCQs",
+                stat_code: "Coding Problems",
+                stat_total: "Total Bank",
+                chart_title: "Question Bank Composition",
+                sec_a_title: "Section A: Multiple Choice",
+                sec_a_sub: "Select the best answer. Get instant feedback.",
+                sec_b_title: "Section B: Fill in the Blanks",
+                sec_b_sub: "Test your recall. Click to reveal.",
+                reveal_btn: "Reveal Answer",
+                sec_cde_title: "Theory & Code Library",
+                sec_cde_sub: "Deep dive into concepts. Tap cards to expand.",
+                sec_c_header: "Very Short Answers (20 Qs)",
+                sec_d_header: "Short Answers (20 Qs)",
+                sec_e_header: "Long Answer & Coding (20 Qs)",
+                footer_text: "Made for Class 12 CS (083) • RBSE 2026 Blueprint",
+                blueprint_title: "Blueprint Analysis",
+                blueprint_sub: "Weightage distribution for RBSE 2026",
+                high_value: "High Value Topics",
+                strategy_tip: "Strategy Tip",
+                strategy_text: "Don't just read code—write it. Syntax errors are common pitfalls.",
+                correct_msg: "Spot on! Great logic.",
+                incorrect_msg: "Incorrect. The correct answer is: "
+            },
+            hi: {
+                nav_dashboard: "डैशबोर्ड",
+                nav_mcq: "क्विज़ (खंड अ)",
+                nav_fillups: "रिक्त स्थान (खंड ब)",
+                nav_theory: "थ्योरी और कोड",
+                nav_analytics: "विश्लेषण",
+                welcome_title: "स्वागत है, भावी टॉपर!",
+                welcome_subtitle: "आपका मास्टर प्री-बोर्ड किट तैयार है। पायथन, एसक्यूएल और नेटवर्क पर 110 प्रश्न।",
+                teacher_note_title: "शिक्षक की रणनीति नोट",
+                teacher_note_text: "\"तर्क को तेज करने के लिए खंड अ से शुरू करें। गहरे अवधारणाओं के लिए थ्योरी पर जाएं, और कोडिंग को तब हल करें जब आप पूरी तरह केंद्रित हों।\"",
+                stat_mcq: "अभ्यास MCQs",
+                stat_code: "कोडिंग प्रश्न",
+                stat_total: "कुल प्रश्न",
+                chart_title: "प्रश्न बैंक संरचना",
+                sec_a_title: "खंड अ: बहुविकल्पीय प्रश्न",
+                sec_a_sub: "सही उत्तर चुनें। तुरंत परिणाम देखें।",
+                sec_b_title: "खंड ब: रिक्त स्थान भरें",
+                sec_b_sub: "अपनी याददाश्त का परीक्षण करें। उत्तर देखने के लिए क्लिक करें।",
+                reveal_btn: "उत्तर देखें",
+                sec_cde_title: "थ्योरी और कोड लाइब्रेरी",
+                sec_cde_sub: "अवधारणाओं को गहराई से समझें। विस्तार के लिए कार्ड पर टैप करें।",
+                sec_c_header: "अति लघूत्तरात्मक (20 प्रश्न)",
+                sec_d_header: "लघूत्तरात्मक (20 प्रश्न)",
+                sec_e_header: "दीर्घ उत्तरीय और कोडिंग (20 प्रश्न)",
+                footer_text: "कक्षा 12 CS (083) के लिए • RBSE 2026 ब्लूप्रिंट",
+                blueprint_title: "ब्लूप्रिंट विश्लेषण",
+                blueprint_sub: "RBSE 2026 के लिए अंक वितरण",
+                high_value: "महत्वपूर्ण विषय",
+                strategy_tip: "रणनीति सुझाव",
+                strategy_text: "कोड को सिर्फ पढ़ें नहीं—इसे लिखें। सिंटेक्स त्रुटियां आम गलतियां हैं।",
+                correct_msg: "बिल्कुल सही! शानदार तर्क।",
+                incorrect_msg: "गलत। सही उत्तर है: "
+            }
+        };
+
+        // --- DATA STORE (BILINGUAL) ---
         
         const mcqData = [
-            { id: 1, q: "Which of the following statements is true regarding the try...except block?", options: ["except block is executed if there is no error in the try block.", "else block is executed if there is an exception in the try block.", "finally block is executed regardless of whether an exception occurs or not.", "raise keyword is used to handle an exception."], correct: 2 },
-            { id: 2, q: "Which mode is used to open a text file for reading and writing, placing the file pointer at the beginning?", options: ["r+", "w+", "a+", "xb"], correct: 0 },
-            { id: 3, q: "In a Stack, the operation of adding an element is known as:", options: ["Pop", "Enqueue", "Push", "Traverse"], correct: 2 },
-            { id: 4, q: "What is the worst-case time complexity of Linear Search?", options: ["O(1)", "O(log n)", "O(n)", "O(n^2)"], correct: 2 },
-            { id: 5, q: "Identify the valid SQL command to remove a table named Student entirely from the database.", options: ["DELETE TABLE Student;", "DROP TABLE Student;", "REMOVE TABLE Student;", "TRUNCATE TABLE Student;"], correct: 1 },
-            { id: 6, q: "Which aggregate function ignores NULL values in SQL?", options: ["COUNT(*)", "MAX()", "SUM()", "All of the above (except COUNT(*))"], correct: 3 },
-            { id: 7, q: "Which network device is used to connect two dissimilar networks (e.g., LAN to Internet)?", options: ["Switch", "Hub", "Gateway", "Repeater"], correct: 2 },
-            { id: 8, q: "In Python, pickle module is used for:", options: ["Serializing Python objects structure.", "Compressing data.", "Encrypting data.", "Formatting text output."], correct: 0 },
-            { id: 9, q: "Which of the following is NOT a valid Queue operation?", options: ["Enqueue", "Dequeue", "Peek", "Push"], correct: 3 },
-            { id: 10, q: "What is the result of 3 + 4 * 2 in postfix notation?", options: ["3 4 2 * +", "3 4 * 2 +", "+ 3 * 4 2", "3 4 2 + *"], correct: 0 },
-            { id: 11, q: "Which protocol is used for secure communication over a computer network?", options: ["HTTP", "FTP", "HTTPS", "SMTP"], correct: 2 },
-            { id: 12, q: "In SQL, the pattern matching wildcard % matches:", options: ["Exactly one character.", "Zero or more characters.", "Exactly two characters.", "Numeric values only."], correct: 1 },
-            { id: 13, q: "Which function is used to read a single line from a text file?", options: ["read()", "readlines()", "readline()", "readall()"], correct: 2 },
-            { id: 14, q: "What does the seek() method do in file handling?", options: ["Finds a specific string in the file.", "Moves the file pointer to a specific position.", "Returns the current position of the file pointer.", "Deletes the file content."], correct: 1 },
-            { id: 15, q: "Which sorting algorithm works by repeatedly swapping adjacent elements if they are in the wrong order?", options: ["Selection Sort", "Insertion Sort", "Bubble Sort", "Merge Sort"], correct: 2 },
-            { id: 16, q: "A variable declared inside a function is called a:", options: ["Global variable", "Local variable", "Static variable", "Class variable"], correct: 1 },
-            { id: 17, q: "Which clause is used to filter groups in SQL?", options: ["WHERE", "ORDER BY", "HAVING", "DISTINCT"], correct: 2 },
-            { id: 18, q: "The specific address of a specific webpage is called:", options: ["HTTP", "URL", "ISP", "HTML"], correct: 1 },
-            { id: 19, q: "Which exception is raised when we try to open a file that does not exist in read mode?", options: ["IOError", "FileFoundError", "FileNotFoundError", "ImportError"], correct: 2 },
-            { id: 20, q: "To use the mean() function, which module needs to be imported?", options: ["math", "statistics", "random", "pickle"], correct: 1 },
-            { id: 21, q: "In a CSV file, what is the default delimiter?", options: ["Tab", "Space", "Comma", "Semicolon"], correct: 2 },
-            { id: 22, q: "What does FIFO stand for?", options: ["First In Fast Out", "First In First Out", "Fast In First Out", "First In Final Out"], correct: 1 },
-            { id: 23, q: "Which topology requires a central controller or hub?", options: ["Star", "Mesh", "Bus", "Ring"], correct: 0 },
-            { id: 24, q: "In SQL, ALTER TABLE is a command of which type?", options: ["DML", "DDL", "DCL", "TCL"], correct: 1 },
-            { id: 25, q: "The csv.writer object writes a row of data into the specified file using which method?", options: ["write()", "writerows()", "writerow()", "dump()"], correct: 2 },
-            { id: 26, q: "Which of the following is an example of guided media?", options: ["Microwave", "Radio Wave", "Fiber Optic Cable", "Satellite"], correct: 2 },
-            { id: 27, q: "What will be the output of round(45.678, 2)?", options: ["45.6", "45.67", "45.68", "46.0"], correct: 2 },
-            { id: 28, q: "In Python, which keyword is used to define a function?", options: ["func", "def", "function", "define"], correct: 1 },
-            { id: 29, q: "Which constraint in SQL ensures that all values in a column are different?", options: ["NOT NULL", "UNIQUE", "CHECK", "DEFAULT"], correct: 1 },
-            { id: 30, q: "What is the full form of MAC address?", options: ["Media Access Control", "Memory Access Code", "Mobile Access Control", "Main Access Computer"], correct: 0 }
+            { id: 1, q: { en: "Which of the following statements is true regarding the try...except block?", hi: "try...except ब्लॉक के संबंध में निम्नलिखित में से कौन सा कथन सत्य है?" }, options: { en: ["except block is executed if there is no error in the try block.", "else block is executed if there is an exception in the try block.", "finally block is executed regardless of whether an exception occurs or not.", "raise keyword is used to handle an exception."], hi: ["यदि try ब्लॉक में कोई त्रुटि नहीं है तो except ब्लॉक निष्पादित होता है।", "यदि try ब्लॉक में कोई अपवाद है तो else ब्लॉक निष्पादित होता है।", "finally ब्लॉक निष्पादित होता है चाहे अपवाद हो या न हो।", "raise कीवर्ड का उपयोग अपवाद को संभालने के लिए किया जाता है।"] }, correct: 2 },
+            { id: 2, q: { en: "Which mode is used to open a text file for reading and writing, placing the file pointer at the beginning?", hi: "टेक्स्ट फ़ाइल को पढ़ने और लिखने के लिए किस मोड का उपयोग किया जाता है, जो फ़ाइल पॉइंटर को शुरुआत में रखता है?" }, options: { en: ["r+", "w+", "a+", "xb"], hi: ["r+", "w+", "a+", "xb"] }, correct: 0 },
+            { id: 3, q: { en: "In a Stack, the operation of adding an element is known as:", hi: "स्टैक (Stack) में, एक तत्व (element) जोड़ने की क्रिया को क्या कहा जाता है?" }, options: { en: ["Pop", "Enqueue", "Push", "Traverse"], hi: ["Pop", "Enqueue", "Push", "Traverse"] }, correct: 2 },
+            { id: 4, q: { en: "What is the worst-case time complexity of Linear Search?", hi: "Linear Search की worst-case time complexity क्या है?" }, options: { en: ["O(1)", "O(log n)", "O(n)", "O(n^2)"], hi: ["O(1)", "O(log n)", "O(n)", "O(n^2)"] }, correct: 2 },
+            { id: 5, q: { en: "Identify the valid SQL command to remove a table named Student entirely from the database.", hi: "डेटाबेस से 'Student' नामक तालिका को पूरी तरह से हटाने के लिए मान्य SQL कमांड पहचानें।" }, options: { en: ["DELETE TABLE Student;", "DROP TABLE Student;", "REMOVE TABLE Student;", "TRUNCATE TABLE Student;"], hi: ["DELETE TABLE Student;", "DROP TABLE Student;", "REMOVE TABLE Student;", "TRUNCATE TABLE Student;"] }, correct: 1 },
+            { id: 6, q: { en: "Which aggregate function ignores NULL values in SQL?", hi: "SQL में कौन सा aggregate function NULL मानों की उपेक्षा करता है?" }, options: { en: ["COUNT(*)", "MAX()", "SUM()", "All of the above (except COUNT(*))"], hi: ["COUNT(*)", "MAX()", "SUM()", "उपरोक्त सभी (COUNT(*) को छोड़कर)"] }, correct: 3 },
+            { id: 7, q: { en: "Which network device is used to connect two dissimilar networks (e.g., LAN to Internet)?", hi: "दो असमान नेटवर्क (जैसे LAN को इंटरनेट से) जोड़ने के लिए किस नेटवर्क डिवाइस का उपयोग किया जाता है?" }, options: { en: ["Switch", "Hub", "Gateway", "Repeater"], hi: ["Switch", "Hub", "Gateway", "Repeater"] }, correct: 2 },
+            { id: 8, q: { en: "In Python, pickle module is used for:", hi: "पायथन में, pickle मॉड्यूल का उपयोग किसके लिए किया जाता है?" }, options: { en: ["Serializing Python objects structure.", "Compressing data.", "Encrypting data.", "Formatting text output."], hi: ["पायथन ऑब्जेक्ट संरचना को सीरियलाइज़ करना।", "डेटा को कंप्रेस करना।", "डेटा को एन्क्रिप्ट करना।", "टेक्स्ट आउटपुट फॉर्मेट करना।"] }, correct: 0 },
+            { id: 9, q: { en: "Which of the following is NOT a valid Queue operation?", hi: "निम्नलिखित में से कौन सा एक मान्य Queue ऑपरेशन नहीं है?" }, options: { en: ["Enqueue", "Dequeue", "Peek", "Push"], hi: ["Enqueue", "Dequeue", "Peek", "Push"] }, correct: 3 },
+            { id: 10, q: { en: "What is the result of 3 + 4 * 2 in postfix notation?", hi: "पोस्टफिक्स नोटेशन में 3 + 4 * 2 का परिणाम क्या है?" }, options: { en: ["3 4 2 * +", "3 4 * 2 +", "+ 3 * 4 2", "3 4 2 + *"], hi: ["3 4 2 * +", "3 4 * 2 +", "+ 3 * 4 2", "3 4 2 + *"] }, correct: 0 },
+            { id: 11, q: { en: "Which protocol is used for secure communication over a computer network?", hi: "कंप्यूटर नेटवर्क पर सुरक्षित संचार के लिए किस प्रोटोकॉल का उपयोग किया जाता है?" }, options: { en: ["HTTP", "FTP", "HTTPS", "SMTP"], hi: ["HTTP", "FTP", "HTTPS", "SMTP"] }, correct: 2 },
+            { id: 12, q: { en: "In SQL, the pattern matching wildcard % matches:", hi: "SQL में, पैटर्न मिलान वाइल्डकार्ड % क्या मैच करता है?" }, options: { en: ["Exactly one character.", "Zero or more characters.", "Exactly two characters.", "Numeric values only."], hi: ["बिल्कुल एक अक्षर।", "शून्य या अधिक अक्षर।", "बिल्कुल दो अक्षर।", "केवल संख्यात्मक मान।"] }, correct: 1 },
+            { id: 13, q: { en: "Which function is used to read a single line from a text file?", hi: "टेक्स्ट फ़ाइल से एक पंक्ति पढ़ने के लिए किस फ़ंक्शन का उपयोग किया जाता है?" }, options: { en: ["read()", "readlines()", "readline()", "readall()"], hi: ["read()", "readlines()", "readline()", "readall()"] }, correct: 2 },
+            { id: 14, q: { en: "What does the seek() method do in file handling?", hi: "फ़ाइल हैंडलिंग में seek() विधि क्या करती है?" }, options: { en: ["Finds a specific string.", "Moves file pointer to specific position.", "Returns current position.", "Deletes content."], hi: ["एक विशिष्ट स्ट्रिंग ढूंढती है।", "फ़ाइल पॉइंटर को विशिष्ट स्थिति पर ले जाती है।", "वर्तमान स्थिति लौटाती है।", "सामग्री हटाती है।"] }, correct: 1 },
+            { id: 15, q: { en: "Which sorting algorithm works by repeatedly swapping adjacent elements?", hi: "कौन सा सॉर्टिंग एल्गोरिदम आसन्न तत्वों को बार-बार स्वैप करके काम करता है?" }, options: { en: ["Selection Sort", "Insertion Sort", "Bubble Sort", "Merge Sort"], hi: ["Selection Sort", "Insertion Sort", "Bubble Sort", "Merge Sort"] }, correct: 2 },
+            { id: 16, q: { en: "A variable declared inside a function is called a:", hi: "फ़ंक्शन के अंदर घोषित वेरिएबल को क्या कहा जाता है?" }, options: { en: ["Global variable", "Local variable", "Static variable", "Class variable"], hi: ["Global variable", "Local variable", "Static variable", "Class variable"] }, correct: 1 },
+            { id: 17, q: { en: "Which clause is used to filter groups in SQL?", hi: "SQL में समूहों (groups) को फ़िल्टर करने के लिए किस क्लॉज का उपयोग किया जाता है?" }, options: { en: ["WHERE", "ORDER BY", "HAVING", "DISTINCT"], hi: ["WHERE", "ORDER BY", "HAVING", "DISTINCT"] }, correct: 2 },
+            { id: 18, q: { en: "The specific address of a specific webpage is called:", hi: "किसी विशिष्ट वेबपेज के विशिष्ट पते को क्या कहा जाता है?" }, options: { en: ["HTTP", "URL", "ISP", "HTML"], hi: ["HTTP", "URL", "ISP", "HTML"] }, correct: 1 },
+            { id: 19, q: { en: "Which exception is raised when opening a non-existent file in read mode?", hi: "रीड मोड में गैर-मौजूद फ़ाइल खोलने पर कौन सा अपवाद उठाया जाता है?" }, options: { en: ["IOError", "FileFoundError", "FileNotFoundError", "ImportError"], hi: ["IOError", "FileFoundError", "FileNotFoundError", "ImportError"] }, correct: 2 },
+            { id: 20, q: { en: "To use the mean() function, which module needs to be imported?", hi: "mean() फ़ंक्शन का उपयोग करने के लिए, किस मॉड्यूल को आयात करने की आवश्यकता है?" }, options: { en: ["math", "statistics", "random", "pickle"], hi: ["math", "statistics", "random", "pickle"] }, correct: 1 },
+            { id: 21, q: { en: "In a CSV file, what is the default delimiter?", hi: "CSV फ़ाइल में, डिफ़ॉल्ट डेलिमिटर क्या है?" }, options: { en: ["Tab", "Space", "Comma", "Semicolon"], hi: ["Tab", "Space", "Comma", "Semicolon"] }, correct: 2 },
+            { id: 22, q: { en: "What does FIFO stand for?", hi: "FIFO का पूर्ण रूप क्या है?" }, options: { en: ["First In Fast Out", "First In First Out", "Fast In First Out", "First In Final Out"], hi: ["First In Fast Out", "First In First Out", "Fast In First Out", "First In Final Out"] }, correct: 1 },
+            { id: 23, q: { en: "Which topology requires a central controller or hub?", hi: "किस टोपोलॉजी में केंद्रीय नियंत्रक या हब की आवश्यकता होती है?" }, options: { en: ["Star", "Mesh", "Bus", "Ring"], hi: ["Star", "Mesh", "Bus", "Ring"] }, correct: 0 },
+            { id: 24, q: { en: "In SQL, ALTER TABLE is a command of which type?", hi: "SQL में, ALTER TABLE किस प्रकार का कमांड है?" }, options: { en: ["DML", "DDL", "DCL", "TCL"], hi: ["DML", "DDL", "DCL", "TCL"] }, correct: 1 },
+            { id: 25, q: { en: "The csv.writer object writes a row of data using which method?", hi: "csv.writer ऑब्जेक्ट किस विधि का उपयोग करके डेटा की एक पंक्ति लिखता है?" }, options: { en: ["write()", "writerows()", "writerow()", "dump()"], hi: ["write()", "writerows()", "writerow()", "dump()"] }, correct: 2 },
+            { id: 26, q: { en: "Which of the following is an example of guided media?", hi: "निम्नलिखित में से कौन सा गाइडेड मीडिया का उदाहरण है?" }, options: { en: ["Microwave", "Radio Wave", "Fiber Optic Cable", "Satellite"], hi: ["Microwave", "Radio Wave", "Fiber Optic Cable", "Satellite"] }, correct: 2 },
+            { id: 27, q: { en: "What will be the output of round(45.678, 2)?", hi: "round(45.678, 2) का आउटपुट क्या होगा?" }, options: { en: ["45.6", "45.67", "45.68", "46.0"], hi: ["45.6", "45.67", "45.68", "46.0"] }, correct: 2 },
+            { id: 28, q: { en: "In Python, which keyword is used to define a function?", hi: "पायथन में, फ़ंक्शन को परिभाषित करने के लिए किस कीवर्ड का उपयोग किया जाता है?" }, options: { en: ["func", "def", "function", "define"], hi: ["func", "def", "function", "define"] }, correct: 1 },
+            { id: 29, q: { en: "Which constraint in SQL ensures that all values in a column are different?", hi: "SQL में कौन सा अवरोध (constraint) यह सुनिश्चित करता है कि कॉलम में सभी मान अलग-अलग हैं?" }, options: { en: ["NOT NULL", "UNIQUE", "CHECK", "DEFAULT"], hi: ["NOT NULL", "UNIQUE", "CHECK", "DEFAULT"] }, correct: 1 },
+            { id: 30, q: { en: "What is the full form of MAC address?", hi: "MAC पते का पूर्ण रूप क्या है?" }, options: { en: ["Media Access Control", "Memory Access Code", "Mobile Access Control", "Main Access Computer"], hi: ["Media Access Control", "Memory Access Code", "Mobile Access Control", "Main Access Computer"] }, correct: 0 }
         ];
 
         const fillupsData = [
-            { q: "The __________ block in exception handling is executed only when no exception occurs in the try block.", a: "else" },
-            { q: "The __________ method returns the current position of the file object.", a: "tell()" },
-            { q: "A queue follows the principle of __________ (LIFO/FIFO).", a: "FIFO" },
-            { q: "In Python, the __________ module is required to work with binary files using dump() and load().", a: "pickle" },
-            { q: "Sorting implies arranging data in a particular __________.", a: "order" },
-            { q: "The number of tuples in a relation is called its __________.", a: "Cardinality" },
-            { q: "The SQL command used to modify the structure of an existing table is __________.", a: "ALTER TABLE" },
-            { q: "__________ acts as a firewall and filters the incoming and outgoing traffic in a network.", a: "Firewall" },
-            { q: "The command to install a python library using pip is __________.", a: "pip install" },
-            { q: "__________ Join returns all rows when there is a match in one of the tables.", a: "Outer" },
-            { q: "The relative path starts from the __________ working directory.", a: "current" },
-            { q: "In a Stack, the condition where we try to pop an element from an empty stack is called __________.", a: "Underflow" },
-            { q: "__________ Search requires the list to be sorted before searching.", a: "Binary" },
-            { q: "The __________ clause in SQL is used to sort the result-set in ascending or descending order.", a: "ORDER BY" },
-            { q: "A __________ is a network device that forwards data packets between computer networks.", a: "Router" },
-            { q: "The __________ function in Python is used to accept input from the user as a string.", a: "input()" },
-            { q: "In the open() function, the mode __________ is used to append data to the end of a binary file.", a: "'ab'" },
-            { q: "__________ is a set of rules that governs data communication.", a: "Protocol" },
-            { q: "To eliminate duplicate values in a SELECT statement, we use the __________ keyword.", a: "DISTINCT" },
-            { q: "The assert statement in Python is used for __________.", a: "debugging" }
+            { q: { en: "The __________ block in exception handling is executed only when no exception occurs in the try block.", hi: "एक्सेप्शन हैंडलिंग में __________ ब्लॉक केवल तब निष्पादित होता है जब try ब्लॉक में कोई अपवाद नहीं होता है।" }, a: { en: "else", hi: "else" } },
+            { q: { en: "The __________ method returns the current position of the file object.", hi: "__________ विधि फ़ाइल ऑब्जेक्ट की वर्तमान स्थिति लौटाती है।" }, a: { en: "tell()", hi: "tell()" } },
+            { q: { en: "A queue follows the principle of __________ (LIFO/FIFO).", hi: "एक कतार (Queue) __________ (LIFO/FIFO) के सिद्धांत का पालन करती है।" }, a: { en: "FIFO", hi: "FIFO" } },
+            { q: { en: "In Python, the __________ module is required to work with binary files using dump() and load().", hi: "पायथन में, dump() और load() का उपयोग करके बाइनरी फ़ाइलों के साथ काम करने के लिए __________ मॉड्यूल की आवश्यकता होती है।" }, a: { en: "pickle", hi: "pickle" } },
+            { q: { en: "Sorting implies arranging data in a particular __________.", hi: "सॉर्टिंग का अर्थ है डेटा को एक विशेष __________ में व्यवस्थित करना।" }, a: { en: "order", hi: "क्रम (order)" } },
+            { q: { en: "The number of tuples in a relation is called its __________.", hi: "किसी संबंध (relation) में ट्यूपल्स की संख्या को इसकी __________ कहा जाता है।" }, a: { en: "Cardinality", hi: "Cardinality" } },
+            { q: { en: "The SQL command used to modify the structure of an existing table is __________.", hi: "मौजूदा तालिका की संरचना को संशोधित करने के लिए उपयोग की जाने वाली SQL कमांड __________ है।" }, a: { en: "ALTER TABLE", hi: "ALTER TABLE" } },
+            { q: { en: "__________ acts as a firewall and filters the incoming and outgoing traffic in a network.", hi: "__________ फ़ायरवॉल के रूप में कार्य करता है और नेटवर्क में आने और जाने वाले ट्रैफ़िक को फ़िल्टर करता है।" }, a: { en: "Firewall/Router", hi: "Firewall/Router" } },
+            { q: { en: "The command to install a python library using pip is __________.", hi: "पिप का उपयोग करके पायथन लाइब्रेरी स्थापित करने का कमांड __________ है।" }, a: { en: "pip install", hi: "pip install" } },
+            { q: { en: "__________ Join returns all rows when there is a match in one of the tables.", hi: "__________ जॉइन सभी पंक्तियों को लौटाता है जब तालिकाओं में से किसी एक में मैच होता है।" }, a: { en: "Outer", hi: "Outer" } },
+            { q: { en: "The relative path starts from the __________ working directory.", hi: "सापेक्ष पथ (Relative path) __________ कार्यशील निर्देशिका से शुरू होता है।" }, a: { en: "current", hi: "current (वर्तमान)" } },
+            { q: { en: "In a Stack, the condition where we try to pop an element from an empty stack is called __________.", hi: "स्टैक में, वह स्थिति जहां हम खाली स्टैक से किसी तत्व को पॉप करने का प्रयास करते हैं, __________ कहलाती है।" }, a: { en: "Underflow", hi: "Underflow" } },
+            { q: { en: "__________ Search requires the list to be sorted before searching.", hi: "__________ खोज के लिए खोज से पहले सूची को सॉर्ट किया जाना आवश्यक है।" }, a: { en: "Binary", hi: "Binary" } },
+            { q: { en: "The __________ clause in SQL is used to sort the result-set.", hi: "SQL में परिणाम-सेट को सॉर्ट करने के लिए __________ क्लॉज का उपयोग किया जाता है।" }, a: { en: "ORDER BY", hi: "ORDER BY" } },
+            { q: { en: "A __________ is a network device that forwards data packets between computer networks.", hi: "__________ एक नेटवर्क डिवाइस है जो कंप्यूटर नेटवर्क के बीच डेटा पैकेट अग्रेषित करता है।" }, a: { en: "Router", hi: "Router" } },
+            { q: { en: "The __________ function in Python is used to accept input from the user as a string.", hi: "पायथन में __________ फ़ंक्शन का उपयोग उपयोगकर्ता से स्ट्रिंग के रूप में इनपुट स्वीकार करने के लिए किया जाता है।" }, a: { en: "input()", hi: "input()" } },
+            { q: { en: "In open(), the mode __________ is used to append data to a binary file.", hi: "open() में, __________ मोड का उपयोग बाइनरी फ़ाइल में डेटा जोड़ने (append) के लिए किया जाता है।" }, a: { en: "'ab'", hi: "'ab'" } },
+            { q: { en: "__________ is a set of rules that governs data communication.", hi: "__________ नियमों का एक समूह है जो डेटा संचार को नियंत्रित करता है।" }, a: { en: "Protocol", hi: "Protocol" } },
+            { q: { en: "To eliminate duplicate values in a SELECT statement, we use the __________ keyword.", hi: "SELECT स्टेटमेंट में डुप्लिकेट मानों को खत्म करने के लिए, हम __________ कीवर्ड का उपयोग करते हैं।" }, a: { en: "DISTINCT", hi: "DISTINCT" } },
+            { q: { en: "The assert statement in Python is used for __________.", hi: "पायथन में assert स्टेटमेंट का उपयोग __________ के लिए किया जाता है।" }, a: { en: "debugging", hi: "debugging" } }
         ];
 
         const theoryDataC = [
-            { q: "1. Define 'Exception' in Python.", a: "An event that occurs during the execution of a program that disrupts the normal flow of instructions (e.g., division by zero)." },
-            { q: "2. Write the syntax to close a file object named f.", a: "f.close()" },
-            { q: "3. What is a 'delimiter' in a CSV file?", a: "A character used to separate values in a text file (e.g., comma , in CSV)." },
-            { q: "4. Name the two primary operations of a Stack.", a: "Push and Pop." },
-            { q: "5. What is the purpose of the pass statement?", a: "It is a null statement in Python. It is used when a statement is required syntactically but you do not want any command or code to execute." },
-            { q: "6. Differentiate between list and tuple in one sentence.", a: "Lists are mutable (changeable), whereas Tuples are immutable (unchangeable)." },
-            { q: "7. Write a Python statement to open a file \"data.txt\" for reading.", a: "f = open(\"data.txt\", \"r\")" },
-            { q: "8. What is the degree of a relation in SQL?", a: "The number of attributes (columns) in a relation (table)." },
-            { q: "9. Name any two DML commands.", a: "INSERT, UPDATE, DELETE." },
-            { q: "10. Expand the term TCP/IP.", a: "Transmission Control Protocol / Internet Protocol." },
-            { q: "11. What is the use of tell() method?", a: "It returns the current position (byte offset) of the file pointer in the file." },
-            { q: "12. Given a list L=[10, 20, 30], what does L.pop() return?", a: "30 (It returns and removes the last element)." },
-            { q: "13. Which switching technique splits data into small packets?", a: "Packet Switching." },
-            { q: "14. Write the SQL query to display the current date.", a: "SELECT CURDATE(); or SELECT SYSDATE();" },
-            { q: "15. What is the primary key?", a: "A set of one or more attributes that can uniquely identify tuples within the relation." },
-            { q: "16. Define 'Bandwidth'.", a: "The maximum amount of data that can be transmitted over a network connection in a given amount of time (usually measured in bps)." },
-            { q: "17. Name the module used for mathematical functions in Python.", a: "math module." },
-            { q: "18. What is the syntax error? Give one example.", a: "An error caused by violating the grammar rules of the programming language. Example: print 'Hello' (Missing parentheses in Python 3)." },
-            { q: "19. Which function is used to convert a character to its ASCII value?", a: "ord()" },
-            { q: "20. What is a Candidate Key?", a: "An attribute (or set of attributes) that uniquely identifies a row and could serve as a Primary Key." }
+            { q: { en: "1. Define 'Exception' in Python.", hi: "1. पायथन में 'Exception' को परिभाषित करें।" }, a: { en: "An event that occurs during execution that disrupts the normal flow of instructions.", hi: "एक घटना जो निष्पादन के दौरान होती है जो निर्देशों के सामान्य प्रवाह को बाधित करती है।" } },
+            { q: { en: "2. Write the syntax to close a file object named f.", hi: "2. f नामक फ़ाइल ऑब्जेक्ट को बंद करने के लिए सिंटैक्स लिखें।" }, a: { en: "f.close()", hi: "f.close()" } },
+            { q: { en: "3. What is a 'delimiter' in a CSV file?", hi: "3. CSV फ़ाइल में 'delimiter' क्या है?" }, a: { en: "A character used to separate values (e.g., comma).", hi: "मानों को अलग करने के लिए उपयोग किया जाने वाला एक वर्ण (जैसे, अल्पविराम)।" } },
+            { q: { en: "4. Name the two primary operations of a Stack.", hi: "4. स्टैक के दो प्राथमिक कार्यों के नाम बताइए।" }, a: { en: "Push and Pop.", hi: "Push और Pop." } },
+            { q: { en: "5. What is the purpose of the pass statement?", hi: "5. pass स्टेटमेंट का उद्देश्य क्या है?" }, a: { en: "A null statement used when a statement is required syntactically but no code needs execution.", hi: "एक null स्टेटमेंट जिसका उपयोग तब किया जाता है जब सिंटैक्स के लिए स्टेटमेंट की आवश्यकता होती है लेकिन कोई कोड निष्पादित नहीं करना होता है।" } },
+            { q: { en: "6. Differentiate between list and tuple in one sentence.", hi: "6. सूची और टपल के बीच एक वाक्य में अंतर बताएं।" }, a: { en: "Lists are mutable, whereas Tuples are immutable.", hi: "सूचियाँ परिवर्तनशील (mutable) हैं, जबकि ट्यूपल्स अपरिवर्तनीय (immutable) हैं।" } },
+            { q: { en: "7. Write a Python statement to open 'data.txt' for reading.", hi: "7. पढ़ने के लिए 'data.txt' खोलने के लिए एक पायथन स्टेटमेंट लिखें।" }, a: { en: "f = open('data.txt', 'r')", hi: "f = open('data.txt', 'r')" } },
+            { q: { en: "8. What is the degree of a relation in SQL?", hi: "8. SQL में किसी संबंध (relation) की डिग्री क्या है?" }, a: { en: "The number of attributes (columns) in a relation.", hi: "एक संबंध में विशेषताओं (कॉलम) की संख्या।" } },
+            { q: { en: "9. Name any two DML commands.", hi: "9. किन्हीं दो DML कमांड के नाम बताइए।" }, a: { en: "INSERT, UPDATE, DELETE.", hi: "INSERT, UPDATE, DELETE." } },
+            { q: { en: "10. Expand the term TCP/IP.", hi: "10. TCP/IP शब्द का विस्तार करें।" }, a: { en: "Transmission Control Protocol / Internet Protocol.", hi: "Transmission Control Protocol / Internet Protocol." } },
+            { q: { en: "11. What is the use of tell() method?", hi: "11. tell() विधि का उपयोग क्या है?" }, a: { en: "Returns the current position of the file pointer.", hi: "फ़ाइल पॉइंटर की वर्तमान स्थिति लौटाता है।" } },
+            { q: { en: "12. Given L=[10, 20, 30], what does L.pop() return?", hi: "12. L=[10, 20, 30] दिया गया है, L.pop() क्या लौटाता है?" }, a: { en: "30", hi: "30" } },
+            { q: { en: "13. Which switching technique splits data into small packets?", hi: "13. कौन सी स्विचिंग तकनीक डेटा को छोटे पैकेट में विभाजित करती है?" }, a: { en: "Packet Switching.", hi: "Packet Switching." } },
+            { q: { en: "14. Write the SQL query to display the current date.", hi: "14. वर्तमान तिथि प्रदर्शित करने के लिए SQL क्वेरी लिखें।" }, a: { en: "SELECT CURDATE();", hi: "SELECT CURDATE();" } },
+            { q: { en: "15. What is the primary key?", hi: "15. प्राइमरी की (primary key) क्या है?" }, a: { en: "A set of attributes that uniquely identify tuples in a relation.", hi: "विशेषताओं का एक समूह जो विशिष्ट रूप से एक संबंध में ट्यूपल्स की पहचान करता है।" } },
+            { q: { en: "16. Define 'Bandwidth'.", hi: "16. 'बैंडविड्थ' को परिभाषित करें।" }, a: { en: "Maximum data transmission rate of a network.", hi: "किसी नेटवर्क की अधिकतम डेटा ट्रांसमिशन दर।" } },
+            { q: { en: "17. Name the module for math functions in Python.", hi: "17. पायथन में गणित कार्यों के लिए मॉड्यूल का नाम बताइए।" }, a: { en: "math", hi: "math" } },
+            { q: { en: "18. What is a Syntax Error?", hi: "18. सिंटैक्स त्रुटि क्या है?" }, a: { en: "Error due to violating grammar rules.", hi: "व्याकरण नियमों का उल्लंघन करने के कारण त्रुटि।" } },
+            { q: { en: "19. Which function converts a char to ASCII?", hi: "19. कौन सा फ़ंक्शन एक char को ASCII में बदलता है?" }, a: { en: "ord()", hi: "ord()" } },
+            { q: { en: "20. What is a Candidate Key?", hi: "20. कैंडिडेट की (Candidate Key) क्या है?" }, a: { en: "An attribute that could serve as a Primary Key.", hi: "एक विशेषता जो प्राइमरी की के रूप में काम कर सकती है।" } }
         ];
 
         const theoryDataD = [
-            { q: "1. Differentiate between Syntax Errors and Runtime Errors with examples.", a: "<b>Syntax Error:</b> Detected by the interpreter before execution. Occurs due to wrong grammar. Example: Missing colon after `if`.<br><b>Runtime Error:</b> Occurs during execution. The syntax is correct, but the logic fails. Example: `ZeroDivisionError` (5/0)." },
-            { q: "2. Explain the with statement in file handling. What is its advantage?", a: "It ensures that the file is properly closed after the block of code is executed, even if an exception occurs.<br><b>Advantage:</b> No need to explicitly call `close()`." },
-            { q: "3. Write a code snippet to read a text file story.txt line by line and print it.", a: "with open('story.txt', 'r') as f:<br>&nbsp;&nbsp;for line in f:<br>&nbsp;&nbsp;&nbsp;&nbsp;print(line, end='')" },
-            { q: "4. Convert the infix expression (A + B) * C to postfix notation showing stack status.", a: "1. Scan (: Stack (<br>2. Scan A: Output A<br>3. Scan +: Stack (+<br>4. Scan B: Output AB<br>5. Scan ): Pop until (, Output AB+<br>6. Scan *: Stack *<br>7. Scan C: Output AB+C<br>8. End: Pop * -> Output <b>AB+C*</b>" },
-            { q: "5. Explain the difference between linear search and binary search regarding data prerequisites.", a: "<b>Linear Search:</b> Works on both sorted and unsorted lists. Checks elements sequentially.<br><b>Binary Search:</b> Requires the list to be sorted. Divides the list in halves to search." },
-            { q: "6. Write a Python function push(Arr, val) to add an element to a stack implemented as a list.", a: "def push(Arr, val):<br>&nbsp;&nbsp;Arr.append(val)" },
-            { q: "7. Explain the term 'Foreign Key' with a suitable example.", a: "A non-key attribute in one table that links to the Primary Key of another table.<br>Example: In an Orders table, CustomerID is a Foreign Key linking to CustomerID in the Customers table." },
-            { q: "8. Write a SQL query to find the average marks of students in a table Student.", a: "SELECT AVG(Marks) FROM Student;" },
-            { q: "9. Differentiate between CHAR and VARCHAR data types in SQL.", a: "<b>CHAR(n):</b> Fixed length. Uses exactly n bytes regardless of actual content length (pads with spaces).<br><b>VARCHAR(n):</b> Variable length. Uses only required bytes plus length info." },
-            { q: "10. Compare Star Topology and Bus Topology.", a: "<b>Star:</b> All nodes connect to a central hub/switch. If one cable breaks, only that node fails.<br><b>Bus:</b> All nodes connect to a single backbone cable. If the backbone breaks, the whole network fails." },
-            { q: "11. What are the advantages of using a Computer Network?", a: "1. Resource Sharing (Printers, Scanners).<br>2. File/Data Sharing.<br>3. Communication (Email, Chat).<br>4. Centralized Software Management." },
-            { q: "12. Explain the concept of 'Pickling' and 'Unpickling'.", a: "<b>Pickling:</b> Converting a Python object hierarchy into a byte stream (Serialization).<br><b>Unpickling:</b> Converting a byte stream back into a Python object hierarchy (Deserialization)." },
-            { q: "13. Write a Python program to calculate the factorial of a number using recursion.", a: "def factorial(n):<br>&nbsp;&nbsp;if n == 0 or n == 1:<br>&nbsp;&nbsp;&nbsp;&nbsp;return 1<br>&nbsp;&nbsp;return n * factorial(n-1)" },
-            { q: "14. Given a list L = [12, 45, 2, 33, 90], show the first pass of Bubble Sort.", a: "1. Compare 12, 45 (No swap).<br>2. Compare 45, 2 (Swap) -> [12, 2, 45, 33, 90]<br>3. Compare 45, 33 (Swap) -> [12, 2, 33, 45, 90]<br>4. Compare 45, 90 (No swap).<br>Result: <b>[12, 2, 33, 45, 90]</b>" },
-            { q: "15. Explain the GROUP BY clause with an example.", a: "Used to group rows that have the same values into summary rows. Often used with aggregate functions.<br>Example: SELECT Dept, COUNT(*) FROM Employee GROUP BY Dept;" },
-            { q: "16. What is the difference between DELETE and DROP commands in SQL?", a: "<b>DELETE:</b> DML command. Deletes specific rows. Can be rolled back.<br><b>DROP:</b> DDL command. Deletes the entire table structure and data. Cannot be rolled back." },
-            { q: "17. Define the following terms: (a) Hub (b) Switch.", a: "<b>Hub:</b> Broadcasts data to all ports. Dumb device. High traffic.<br><b>Switch:</b> Sends data only to the destination port (Unicast). Smart device. Better performance." },
-            { q: "18. Write a function in Python that takes a list of numbers and returns the sum of even numbers.", a: "def sum_even(lst):<br>&nbsp;&nbsp;s = 0<br>&nbsp;&nbsp;for num in lst:<br>&nbsp;&nbsp;&nbsp;&nbsp;if num % 2 == 0:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;s += num<br>&nbsp;&nbsp;return s" },
-            { q: "19. Explain the use of the seek() method with its syntax and arguments.", a: "Syntax: file_object.seek(offset, whence)<br>offset: Number of bytes to move.<br>whence: 0 (Beginning), 1 (Current), 2 (End).<br>Use: To move the file pointer to a desired location." },
-            { q: "20. Write a SQL query to display names of students starting with the letter 'A'.", a: "SELECT Name FROM Student WHERE Name LIKE 'A%';" }
+            { q: { en: "1. Syntax vs Runtime Errors.", hi: "1. सिंटैक्स बनाम रनटाइम त्रुटियां।" }, a: { en: "<b>Syntax:</b> Grammar mistakes caught before execution (e.g., missing colon).<br><b>Runtime:</b> Errors during execution (e.g., division by zero).", hi: "<b>सिंटैक्स:</b> व्याकरण संबंधी गलतियाँ जो निष्पादन से पहले पकड़ी जाती हैं (जैसे, कोलन गायब होना)।<br><b>रनटाइम:</b> निष्पादन के दौरान त्रुटियाँ (जैसे, शून्य से विभाजन)।" } },
+            { q: { en: "2. Explain 'with' statement advantage.", hi: "2. 'with' स्टेटमेंट का लाभ बताएं।" }, a: { en: "Automatically closes the file after the block ends, even if errors occur.", hi: "ब्लॉक समाप्त होने के बाद फ़ाइल को स्वचालित रूप से बंद कर देता है, भले ही त्रुटियां हों।" } },
+            { q: { en: "3. Code to read text file line by line.", hi: "3. टेक्स्ट फ़ाइल को लाइन दर लाइन पढ़ने के लिए कोड।" }, a: { en: "with open('f.txt') as f:\n  for line in f:\n    print(line)", hi: "with open('f.txt') as f:\n  for line in f:\n    print(line)" } },
+            { q: { en: "4. Convert (A+B)*C to postfix.", hi: "4. (A+B)*C को पोस्टफिक्स में बदलें।" }, a: { en: "AB+C*", hi: "AB+C*" } },
+            { q: { en: "5. Linear vs Binary Search.", hi: "5. रैखिक (Linear) बनाम बाइनरी खोज।" }, a: { en: "Linear checks sequentially. Binary requires sorted data and divides range in half.", hi: "रैखिक क्रमिक रूप से जांच करता है। बाइनरी के लिए सॉर्ट किए गए डेटा की आवश्यकता होती है और रेंज को आधा कर देता है।" } },
+            { q: { en: "6. Python function for stack push.", hi: "6. स्टैक पुश के लिए पायथन फ़ंक्शन।" }, a: { en: "def push(stk, item):\n  stk.append(item)", hi: "def push(stk, item):\n  stk.append(item)" } },
+            { q: { en: "7. Explain Foreign Key.", hi: "7. फॉरेन की (Foreign Key) की व्याख्या करें।" }, a: { en: "A key linking to a Primary Key in another table.", hi: "एक कुंजी जो दूसरी तालिका में प्राइमरी की से लिंक करती है।" } },
+            { q: { en: "8. SQL for Average Marks.", hi: "8. औसत अंकों के लिए SQL।" }, a: { en: "SELECT AVG(Marks) FROM Student;", hi: "SELECT AVG(Marks) FROM Student;" } },
+            { q: { en: "9. CHAR vs VARCHAR.", hi: "9. CHAR बनाम VARCHAR।" }, a: { en: "CHAR is fixed length. VARCHAR is variable length.", hi: "CHAR निश्चित लंबाई है। VARCHAR परिवर्तनीय लंबाई है।" } },
+            { q: { en: "10. Star vs Bus Topology.", hi: "10. स्टार बनाम बस टोपोलॉजी।" }, a: { en: "Star: Central hub. Bus: Single backbone cable.", hi: "स्टार: केंद्रीय हब। बस: सिंगल बैकबोन केबल।" } },
+            { q: { en: "11. Advantages of Networks.", hi: "11. नेटवर्क के लाभ।" }, a: { en: "Resource sharing, communication, data storage.", hi: "संसाधन साझाकरण, संचार, डेटा भंडारण।" } },
+            { q: { en: "12. Pickling vs Unpickling.", hi: "12. पिकलिंग बनाम अनपिकलिंग।" }, a: { en: "Pickling: Object to Byte stream. Unpickling: Byte stream to Object.", hi: "पिकलिंग: ऑब्जेक्ट से बाइट स्ट्रीम। अनपिकलिंग: बाइट स्ट्रीम से ऑब्जेक्ट।" } },
+            { q: { en: "13. Recursive Factorial Code.", hi: "13. पुनरावर्ती फैक्टोरियल कोड।" }, a: { en: "def fact(n):\n  if n<2: return 1\n  return n*fact(n-1)", hi: "def fact(n):\n  if n<2: return 1\n  return n*fact(n-1)" } },
+            { q: { en: "14. Bubble Sort Pass 1 for [12,45,2,33,90].", hi: "14. [12,45,2,33,90] के लिए बबल सॉर्ट पास 1।" }, a: { en: "[12, 2, 33, 45, 90]", hi: "[12, 2, 33, 45, 90]" } },
+            { q: { en: "15. Explain GROUP BY.", hi: "15. GROUP BY समझाएं।" }, a: { en: "Groups rows with same values. Used with aggregates.", hi: "समान मानों वाली पंक्तियों को समूहित करता है। एग्रीगेट्स के साथ प्रयोग किया जाता है।" } },
+            { q: { en: "16. DELETE vs DROP.", hi: "16. DELETE बनाम DROP।" }, a: { en: "DELETE removes rows (DML). DROP removes table (DDL).", hi: "DELETE पंक्तियों को हटाता है (DML)। DROP तालिका को हटाता है (DDL)।" } },
+            { q: { en: "17. Hub vs Switch.", hi: "17. हब बनाम स्विच।" }, a: { en: "Hub broadcasts to all. Switch sends to destination only.", hi: "हब सभी को प्रसारित करता है। स्विच केवल गंतव्य पर भेजता है।" } },
+            { q: { en: "18. Sum of Even Numbers function.", hi: "18. सम संख्याओं का योग फ़ंक्शन।" }, a: { en: "def s_even(l):\n return sum(x for x in l if x%2==0)", hi: "def s_even(l):\n return sum(x for x in l if x%2==0)" } },
+            { q: { en: "19. Explain seek().", hi: "19. seek() समझाएं।" }, a: { en: "Moves file pointer. seek(offset, whence).", hi: "फ़ाइल पॉइंटर को स्थानांतरित करता है। seek(offset, whence)।" } },
+            { q: { en: "20. SQL Names starting with 'A'.", hi: "20. 'A' से शुरू होने वाले SQL नाम।" }, a: { en: "SELECT Name FROM Student WHERE Name LIKE 'A%';", hi: "SELECT Name FROM Student WHERE Name LIKE 'A%';" } }
         ];
 
         const theoryDataE = [
             { 
-                q: "1. File Handling (Text): Write a Python program to read a text file named \"article.txt\". Count and display the number of uppercase characters, lowercase characters, and digits in the file.",
+                q: { en: "1. Text File: Count uppercase, lowercase, digits in 'article.txt'.", hi: "1. टेक्स्ट फ़ाइल: 'article.txt' में अपरकेस, लोअरकेस, अंकों को गिनें।" },
                 type: "code",
-                a: `def count_chars():
-    upper = lower = digits = 0
+                a: { en: `def count_chars():
+    u = l = d = 0
     with open("article.txt", "r") as f:
-        content = f.read()
-        for char in content:
-            if char.isupper():
-                upper += 1
-            elif char.islower():
-                lower += 1
-            elif char.isdigit():
-                digits += 1
-    print(f"Uppercase: {upper}, Lowercase: {lower}, Digits: {digits}")`
+        data = f.read()
+        for c in data:
+            if c.isupper(): u+=1
+            elif c.islower(): l+=1
+            elif c.isdigit(): d+=1
+    print(u, l, d)`, hi: `def count_chars():
+    u = l = d = 0
+    with open("article.txt", "r") as f:
+        data = f.read()
+        for c in data:
+            if c.isupper(): u+=1
+            elif c.islower(): l+=1
+            elif c.isdigit(): d+=1
+    print(u, l, d)` }
             },
             {
-                q: "2. File Handling (Binary): Write a program to create a binary file \"student.dat\" and write a list of dictionaries, where each dictionary represents a student (RollNo, Name, Marks). Also, provide a function to search and display details of a student given their RollNo.",
+                q: { en: "2. Binary File: Create 'student.dat' and Search by RollNo.", hi: "2. बाइनरी फ़ाइल: 'student.dat' बनाएं और RollNo द्वारा खोजें।" },
                 type: "code",
-                a: `import pickle
-def create_binary():
-    f = open("student.dat", "wb")
-    students = [
-        {"RollNo": 1, "Name": "Amit", "Marks": 85},
-        {"RollNo": 2, "Name": "Sumit", "Marks": 92}
-    ]
-    pickle.dump(students, f)
+                a: { en: `import pickle
+def create():
+    f = open("student.dat","wb")
+    pickle.dump([{"R":1,"N":"A"},{"R":2,"N":"B"}], f)
     f.close()
-
-def search_student(rno):
-    f = open("student.dat", "rb")
+def search(r):
+    f = open("student.dat","rb")
     try:
-        while True:
-            data = pickle.load(f)
-            for stu in data:
-                if stu["RollNo"] == rno:
-                    print("Found:", stu)
-                    return
-    except EOFError:
-        pass
-    f.close()`
+        L = pickle.load(f)
+        for s in L:
+            if s["R"] == r: print(s)
+    except: pass
+    f.close()`, hi: `import pickle
+def create():
+    f = open("student.dat","wb")
+    pickle.dump([{"R":1,"N":"A"},{"R":2,"N":"B"}], f)
+    f.close()
+def search(r):
+    f = open("student.dat","rb")
+    try:
+        L = pickle.load(f)
+        for s in L:
+            if s["R"] == r: print(s)
+    except: pass
+    f.close()` }
             },
             {
-                q: "3. File Handling (CSV): Write a Python program to write user-inputted data (ItemName, Price, Quantity) into a CSV file \"inventory.csv\". Then, read the file and calculate the total value of the inventory.",
+                q: { en: "3. CSV: Write inventory data and Read to calc total.", hi: "3. CSV: इन्वेंट्री डेटा लिखें और कुल गणना करने के लिए पढ़ें।" },
                 type: "code",
-                a: `import csv
-def write_csv():
-    with open("inventory.csv", "w", newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(["ItemName", "Price", "Quantity"])
-        while True:
-            name = input("Item: ")
-            price = float(input("Price: "))
-            qty = int(input("Qty: "))
-            writer.writerow([name, price, qty])
-            if input("More? (y/n): ") == 'n': break
-
-def read_csv():
-    total = 0
-    with open("inventory.csv", "r") as f:
-        reader = csv.reader(f)
-        next(reader) # Skip header
-        for row in reader:
-            total += float(row[1]) * int(row[2])
-    print("Total Inventory Value:", total)`
+                a: { en: `import csv
+def process():
+    with open("inv.csv","w",newline='') as f:
+        w = csv.writer(f)
+        w.writerow(["Item","Price","Qty"])
+        w.writerow(["Pen", 10, 5])
+    
+    with open("inv.csv","r") as f:
+        r = csv.reader(f)
+        next(r)
+        tot = 0
+        for row in r:
+            tot += float(row[1]) * int(row[2])
+    print(tot)`, hi: `import csv
+def process():
+    with open("inv.csv","w",newline='') as f:
+        w = csv.writer(f)
+        w.writerow(["Item","Price","Qty"])
+        w.writerow(["Pen", 10, 5])
+    
+    with open("inv.csv","r") as f:
+        r = csv.reader(f)
+        next(r)
+        tot = 0
+        for row in r:
+            tot += float(row[1]) * int(row[2])
+    print(tot)` }
             },
             {
-                q: "4. Stack Implementation: Write a menu-driven program in Python to implement a Stack using a list. The program should support Push, Pop, Peek, and Display operations.",
+                q: { en: "4. Stack Implementation (Push, Pop, Peek).", hi: "4. स्टैक कार्यान्वयन (Push, Pop, Peek)।" },
                 type: "code",
-                a: `stack = []
-def push():
-    elem = int(input("Enter element: "))
-    stack.append(elem)
-def pop():
-    if not stack: print("Stack Underflow")
-    else: print("Popped:", stack.pop())
+                a: { en: `stk = []
+def push(v): stk.append(v)
+def pop(): 
+    if not stk: print("Underflow")
+    else: print(stk.pop())
 def peek():
-    if not stack: print("Stack Empty")
-    else: print("Top:", stack[-1])
-def display():
-    print(stack)
-
-while True:
-    print("1.Push 2.Pop 3.Peek 4.Display 5.Exit")
-    ch = int(input("Choice: "))
-    if ch==1: push()
-    elif ch==2: pop()
-    elif ch==3: peek()
-    elif ch==4: display()
-    else: break`
+    if stk: print(stk[-1])`, hi: `stk = []
+def push(v): stk.append(v)
+def pop(): 
+    if not stk: print("Underflow")
+    else: print(stk.pop())
+def peek():
+    if stk: print(stk[-1])` }
             },
             {
-                q: "5. Queue Implementation: Write a program to implement a Queue using a list. Include functions for Enqueue, Dequeue, and checking if the queue is empty.",
+                q: { en: "5. Queue Implementation (List).", hi: "5. कतार कार्यान्वयन (List)।" },
                 type: "code",
-                a: `queue = []
-def enqueue(val):
-    queue.append(val)
-def dequeue():
-    if not queue: return "Underflow"
-    return queue.pop(0)
-def is_empty():
-    return len(queue) == 0`
+                a: { en: `q = []
+def enq(v): q.append(v)
+def deq():
+    if not q: return "Empty"
+    return q.pop(0)`, hi: `q = []
+def enq(v): q.append(v)
+def deq():
+    if not q: return "Empty"
+    return q.pop(0)` }
             },
             {
-                q: "6. Sorting: Write a Python program to implement Insertion Sort. The function should take a list of integers as input and print the list after every pass.",
+                q: { en: "6. Insertion Sort Code.", hi: "6. इंसर्शन सॉर्ट कोड।" },
                 type: "code",
-                a: `def insertion_sort(arr):
+                a: { en: `def i_sort(arr):
     for i in range(1, len(arr)):
         key = arr[i]
-        j = i - 1
-        while j >= 0 and key < arr[j]:
-            arr[j + 1] = arr[j]
+        j = i-1
+        while j>=0 and key < arr[j]:
+            arr[j+1] = arr[j]
             j -= 1
-        arr[j + 1] = key
-        print(f"Pass {i}: {arr}")
-
-lst = [12, 11, 13, 5, 6]
-insertion_sort(lst)`
+        arr[j+1] = key`, hi: `def i_sort(arr):
+    for i in range(1, len(arr)):
+        key = arr[i]
+        j = i-1
+        while j>=0 and key < arr[j]:
+            arr[j+1] = arr[j]
+            j -= 1
+        arr[j+1] = key` }
             },
             {
-                q: "7. Searching: Write a function binary_search(list, key) that implements Binary Search logic. Use this function to search for a user-provided number in a sorted list.",
+                q: { en: "7. Binary Search Code.", hi: "7. बाइनरी सर्च कोड।" },
                 type: "code",
-                a: `def binary_search(lst, key):
-    low = 0
-    high = len(lst) - 1
-    while low <= high:
-        mid = (low + high) // 2
-        if lst[mid] == key:
-            return mid
-        elif lst[mid] < key:
-            low = mid + 1
-        else:
-            high = mid - 1
-    return -1`
+                a: { en: `def b_search(arr, k):
+    l, h = 0, len(arr)-1
+    while l <= h:
+        mid = (l+h)//2
+        if arr[mid] == k: return mid
+        elif arr[mid] < k: l = mid + 1
+        else: h = mid - 1
+    return -1`, hi: `def b_search(arr, k):
+    l, h = 0, len(arr)-1
+    while l <= h:
+        mid = (l+h)//2
+        if arr[mid] == k: return mid
+        elif arr[mid] < k: l = mid + 1
+        else: h = mid - 1
+    return -1` }
             },
             {
-                q: "8. SQL (DDL & DML): Write SQL commands for table EMPLOYEE: Create table, Insert 3 records, Increase Salary of 'IT' by 10%, Delete Salary < 5000.",
+                q: { en: "8. SQL: Table Employee (Create, Insert, Update, Delete).", hi: "8. SQL: तालिका Employee (Create, Insert, Update, Delete)।" },
                 type: "code",
-                a: `-- a) Create Table
-CREATE TABLE EMPLOYEE (
-    EmpID INT PRIMARY KEY,
-    Name VARCHAR(50),
-    Dept VARCHAR(30),
-    Salary DECIMAL(10, 2)
-);
-
--- b) Insert Records
-INSERT INTO EMPLOYEE VALUES (1, 'Raj', 'IT', 60000);
-INSERT INTO EMPLOYEE VALUES (2, 'Simran', 'HR', 45000);
-INSERT INTO EMPLOYEE VALUES (3, 'Ravi', 'IT', 55000);
-
--- c) Increase Salary
-UPDATE EMPLOYEE SET Salary = Salary * 1.10 WHERE Dept = 'IT';
-
--- d) Delete Records
-DELETE FROM EMPLOYEE WHERE Salary < 50000;`
+                a: { en: `CREATE TABLE Emp (ID INT, Name VARCHAR(20), Sal INT);
+INSERT INTO Emp VALUES (1, 'A', 5000);
+UPDATE Emp SET Sal = Sal * 1.1 WHERE ID=1;
+DELETE FROM Emp WHERE Sal < 2000;`, hi: `CREATE TABLE Emp (ID INT, Name VARCHAR(20), Sal INT);
+INSERT INTO Emp VALUES (1, 'A', 5000);
+UPDATE Emp SET Sal = Sal * 1.1 WHERE ID=1;
+DELETE FROM Emp WHERE Sal < 2000;` }
             },
             {
-                q: "9. SQL (Joins): Given two tables: CUSTOMER (CustID, Name, City) and ORDER (OrderID, CustID, Amount). Write a query to display the Customer Name, OrderID, and Amount for all orders, including those customers who haven't placed any orders (Left Join logic).",
+                q: { en: "9. SQL: Left Join query.", hi: "9. SQL: Left Join क्वेरी।" },
                 type: "code",
-                a: `SELECT C.Name, O.OrderID, O.Amount
-FROM CUSTOMER C
-LEFT JOIN ORDER O ON C.CustID = O.CustID;`
+                a: { en: `SELECT C.Name, O.Amt 
+FROM Cust C 
+LEFT JOIN Ord O ON C.ID = O.CID;`, hi: `SELECT C.Name, O.Amt 
+FROM Cust C 
+LEFT JOIN Ord O ON C.ID = O.CID;` }
             },
             {
-                q: "10. SQL (Grouping): Create a table SALES (SalesmanID, Product, Quantity, Region). Write queries to: a) Count salesmen in each Region. b) Find total Quantity sold for each Product. c) Display Regions where total salesmen > 5.",
+                q: { en: "10. SQL: Group By and Having.", hi: "10. SQL: Group By और Having।" },
                 type: "code",
-                a: `-- a)
-SELECT Region, COUNT(SalesmanID) FROM SALES GROUP BY Region;
--- b)
-SELECT Product, SUM(Quantity) FROM SALES GROUP BY Product;
--- c)
-SELECT Region, COUNT(SalesmanID) FROM SALES GROUP BY Region HAVING COUNT(SalesmanID) > 5;`
+                a: { en: `SELECT Region, COUNT(*) 
+FROM Sales 
+GROUP BY Region 
+HAVING COUNT(*) > 5;`, hi: `SELECT Region, COUNT(*) 
+FROM Sales 
+GROUP BY Region 
+HAVING COUNT(*) > 5;` }
             },
             {
-                q: "11. Networking (Case Study): Alpha School has 4 wings (Admin, Junior, Senior, Hostel). Distances: Admin-Junior (50m), Admin-Senior (100m), Admin-Hostel (500m), Junior-Senior (30m). Suggest Topology and Repeater placement.",
+                q: { en: "11. Case Study: Topology & Repeater.", hi: "11. केस स्टडी: टोपोलॉजी और रिपीटर।" },
                 type: "text",
-                a: "<b>a) Topology: Star Topology.</b> Connecting every wing to the Admin wing allows for centralized control and easy fault isolation.<br><br><b>b) Repeater:</b> Needed for the <b>Admin to Hostel link</b>. The distance is 500m, which exceeds the typical 100m range of Ethernet cables."
+                a: { en: "<b>Topology:</b> Star (connect all to Admin).<br><b>Repeater:</b> Between Admin and Hostel (500m distance).", hi: "<b>टोपोलॉजी:</b> स्टार (सभी को एडमिन से कनेक्ट करें)।<br><b>रिपीटर:</b> एडमिन और हॉस्टल के बीच (500m दूरी)।" }
             },
             {
-                q: "12. Networking (Protocols): Explain the function of: SMTP, POP3, VoIP, DNS, FTP.",
+                q: { en: "12. Protocols: SMTP, POP3, VoIP, DNS.", hi: "12. प्रोटोकॉल: SMTP, POP3, VoIP, DNS।" },
                 type: "text",
-                a: "<b>SMTP:</b> Sending emails.<br><b>POP3:</b> Retrieving emails.<br><b>VoIP:</b> Voice calls over IP.<br><b>DNS:</b> Translates Domain names to IP addresses.<br><b>FTP:</b> Transferring files between client and server."
+                a: { en: "SMTP: Sending mail. POP3: Reading mail. VoIP: Voice over Net. DNS: URL to IP.", hi: "SMTP: मेल भेजना। POP3: मेल पढ़ना। VoIP: नेट पर वॉयस। DNS: URL से IP।" }
             },
             {
-                q: "13. Exception Handling: Write a Python program that calculates the division of two numbers provided by the user. Handle the ZeroDivisionError and ValueError gracefully.",
+                q: { en: "13. Python Exception Handling (Division).", hi: "13. पायथन अपवाद हैंडलिंग (विभाजन)।" },
                 type: "code",
-                a: `try:
-    n1 = int(input("Enter num1: "))
-    n2 = int(input("Enter num2: "))
-    res = n1 / n2
+                a: { en: `try:
+    print(int(input()) / int(input()))
 except ZeroDivisionError:
-    print("Error: Cannot divide by zero.")
+    print("Zero Error")
 except ValueError:
-    print("Error: Please enter integers only.")
-else:
-    print("Result:", res)
-finally:
-    print("Execution complete.")`
+    print("Int only")`, hi: `try:
+    print(int(input()) / int(input()))
+except ZeroDivisionError:
+    print("Zero Error")
+except ValueError:
+    print("Int only")` }
             },
             {
-                q: "14. Data Structures (Stack Application): Write a program to reverse a string using a Stack. Push all characters onto the stack and then pop them to form the reversed string.",
+                q: { en: "14. Reverse String using Stack.", hi: "14. स्टैक का उपयोग करके स्ट्रिंग उलटें।" },
                 type: "code",
-                a: `def reverse_string(s):
-    stack = []
-    # Push all
-    for char in s:
-        stack.append(char)
-    
-    rev_str = ""
-    # Pop all
-    while stack:
-        rev_str += stack.pop()
-    return rev_str
-
-print(reverse_string("HELLO")) # Output: OLLEH`
+                a: { en: `def rev(s):
+    stk = list(s)
+    res = ""
+    while stk: res += stk.pop()
+    return res`, hi: `def rev(s):
+    stk = list(s)
+    res = ""
+    while stk: res += stk.pop()
+    return res` }
             },
             {
-                q: "15. SQL (Constraints): Explain the following constraints with syntax examples: NOT NULL, DEFAULT, CHECK, PRIMARY KEY, FOREIGN KEY.",
+                q: { en: "15. SQL Constraints.", hi: "15. SQL अवरोध (Constraints)।" },
                 type: "text",
-                a: "<b>NOT NULL:</b> Column cannot be null. (Name VARCHAR(20) NOT NULL)<br><b>DEFAULT:</b> Default value if none specified. (City VARCHAR(20) DEFAULT 'Delhi')<br><b>CHECK:</b> Validates condition. (Age INT CHECK (Age >= 18))<br><b>PRIMARY KEY:</b> Unique ID. (ID INT PRIMARY KEY)<br><b>FOREIGN KEY:</b> Links tables. (DeptID INT REFERENCES Dept(DeptID))"
+                a: { en: "NOT NULL (No empties), PRIMARY KEY (Unique ID), CHECK (Validate), DEFAULT (Auto value).", hi: "NOT NULL (खाली नहीं), PRIMARY KEY (विशिष्ट आईडी), CHECK (मान्यकरण), DEFAULT (स्वचालित मान)।" }
             },
             {
-                q: "16. Text File Processing: Write a function filter_words() that reads a file \"notes.txt\" and copies only those lines to a new file \"important.txt\" that start with the word \"Note\".",
+                q: { en: "16. Filter text file lines starting with 'Note'.", hi: "16. 'Note' से शुरू होने वाली टेक्स्ट फ़ाइल लाइनों को फ़िल्टर करें।" },
                 type: "code",
-                a: `def filter_words():
-    f_in = open("notes.txt", "r")
-    f_out = open("important.txt", "w")
-    for line in f_in:
-        words = line.split()
-        if len(words) > 0 and words[0] == "Note":
-            f_out.write(line)
-    f_in.close()
-    f_out.close()`
+                a: { en: `def filter():
+    with open("n.txt") as f1, open("imp.txt","w") as f2:
+        for line in f1:
+            if line.startswith("Note"):
+                f2.write(line)`, hi: `def filter():
+    with open("n.txt") as f1, open("imp.txt","w") as f2:
+        for line in f1:
+            if line.startswith("Note"):
+                f2.write(line)` }
             },
             {
-                q: "17. Binary File (Update): Write a program to update the marks of a student in \"student.dat\". The user provides the RollNo and new Marks.",
+                q: { en: "17. Update Binary File Record.", hi: "17. बाइनरी फ़ाइल रिकॉर्ड अपडेट करें।" },
                 type: "code",
-                a: `import pickle
-import os
-def update_marks(rno, new_marks):
-    f = open("student.dat", "rb")
-    f_temp = open("temp.dat", "wb")
-    found = False
-    try:
-        while True:
-            rec = pickle.load(f)
-            # Assuming record is dict
-            if rec["RollNo"] == rno:
-                rec["Marks"] = new_marks
-                found = True
-            pickle.dump(rec, f_temp)
-    except EOFError:
-        pass
-    f.close()
-    f_temp.close()
-    if found:
-        os.remove("student.dat")
-        os.rename("temp.dat", "student.dat")`
+                a: { en: `import pickle
+def update(r, m):
+    f = open("s.dat","rb+"); d = pickle.load(f)
+    for s in d:
+        if s["R"] == r: s["M"] = m
+    f.seek(0); pickle.dump(d, f); f.close()`, hi: `import pickle
+def update(r, m):
+    f = open("s.dat","rb+"); d = pickle.load(f)
+    for s in d:
+        if s["R"] == r: s["M"] = m
+    f.seek(0); pickle.dump(d, f); f.close()` }
             },
             {
-                q: "18. Connectivity: Describe the various types of Switching techniques (Circuit, Packet, Message). Compare Circuit Switching and Packet Switching.",
+                q: { en: "18. Packet vs Circuit Switching.", hi: "18. पैकेट बनाम सर्किट स्विचिंग।" },
                 type: "text",
-                a: "<b>Circuit Switching:</b> Dedicated physical path. Guaranteed bandwidth. Inefficient. (Telephone).<br><b>Packet Switching:</b> Data broken into packets. Independent routes. Efficient. (Internet).<br><b>Message Switching:</b> Store-and-forward. Entire message sent to next node."
+                a: { en: "Circuit: Dedicated path (Phone). Packet: Data chunks, multiple paths (Internet).", hi: "सर्किट: समर्पित पथ (फोन)। पैकेट: डेटा टुकड़े, कई पथ (इंटरनेट)।" }
             },
             {
-                q: "19. Interface Python with SQL (Conceptual): Explain the steps required to connect Python with a MySQL database. Describe the role of cursor() and execute() methods.",
+                q: { en: "19. Python-MySQL Connectivity Steps.", hi: "19. पायथन-MySQL कनेक्टिविटी चरण।" },
                 type: "text",
-                a: "1. <b>Import:</b> import mysql.connector<br>2. <b>Connect:</b> con = mysql.connector.connect(...)<br>3. <b>Cursor:</b> cur = con.cursor() (Work area to execute commands)<br>4. <b>Execute:</b> cur.execute(\"SQL QUERY\") (Sends query to DB)<br>5. <b>Fetch/Commit:</b> cur.fetchall() or con.commit()"
+                a: { en: "1. import mysql.connector\n2. connect()\n3. cursor()\n4. execute()\n5. commit()", hi: "1. import mysql.connector\n2. connect()\n3. cursor()\n4. execute()\n5. commit()" }
             },
             {
-                q: "20. Comprehensive Case Study (School Management): Design a small Python application (pseudo-code or code) that uses a CSV file to manage Library books (add, issue, return).",
+                q: { en: "20. Library Management CSV App.", hi: "20. लाइब्रेरी प्रबंधन CSV ऐप।" },
                 type: "code",
-                a: `import csv
-def add_book():
-    with open('library.csv', 'a', newline='') as f:
-        w = csv.writer(f)
-        b_id = input("Book ID: ")
-        title = input("Title: ")
-        status = "Available"
-        w.writerow([b_id, title, status])
-
-def issue_book():
-    books = []
-    found = False
-    with open('library.csv', 'r') as f:
-        reader = csv.reader(f)
-        for row in reader:
-            if row[0] == input("ID to issue: ") and row[2] == "Available":
-                row[2] = "Issued"
-                found = True
-            books.append(row)
-    if found:
-        with open('library.csv', 'w', newline='') as f:
-            w = csv.writer(f)
-            w.writerows(books)`
+                a: { en: `import csv
+def add(id, t):
+    with open("lib.csv","a",newline='') as f:
+        csv.writer(f).writerow([id, t, "Avail"])`, hi: `import csv
+def add(id, t):
+    with open("lib.csv","a",newline='') as f:
+        csv.writer(f).writerow([id, t, "Avail"])` }
             }
         ];
 
         // --- APP STATE ---
         let currentTab = 'dashboard';
-        let mcqSelections = new Array(mcqData.length).fill(null); // stores user answers index
-        
-        // --- CORE FUNCTIONS ---
+        let currentLang = 'en';
+        let mcqSelections = new Array(mcqData.length).fill(null);
 
+        // --- CORE FUNCTIONS ---
         function init() {
             switchTab('dashboard');
             // Mobile menu toggle
             document.getElementById('mobile-menu-btn').addEventListener('click', () => {
                 const menu = document.getElementById('mobile-menu');
                 menu.classList.toggle('hidden');
+            });
+            updateLanguageUI();
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            
+            // Update Toggle Button Styles
+            if(lang === 'en') {
+                document.getElementById('btn-en').classList.add('bg-white', 'text-primary');
+                document.getElementById('btn-en').classList.remove('text-white', 'hover:bg-white/10');
+                
+                document.getElementById('btn-hi').classList.remove('bg-white', 'text-primary');
+                document.getElementById('btn-hi').classList.add('text-white', 'hover:bg-white/10');
+            } else {
+                document.getElementById('btn-hi').classList.add('bg-white', 'text-primary');
+                document.getElementById('btn-hi').classList.remove('text-white', 'hover:bg-white/10');
+                
+                document.getElementById('btn-en').classList.remove('bg-white', 'text-primary');
+                document.getElementById('btn-en').classList.add('text-white', 'hover:bg-white/10');
+            }
+
+            updateLanguageUI();
+            switchTab(currentTab); // Re-render current view with new language
+        }
+
+        function updateLanguageUI() {
+            // Translate all elements with data-i18n attribute
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[currentLang][key]) {
+                    el.textContent = i18n[currentLang][key];
+                }
             });
         }
 
@@ -598,11 +660,9 @@ def issue_book():
             // Update Nav Styles
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 if (btn.dataset.tab === tabId) {
-                    // Active Tab Style
                     btn.classList.add('bg-white', 'text-primary', 'shadow-md', 'transform', 'scale-105');
                     btn.classList.remove('text-indigo-100', 'hover:bg-white/10');
                 } else {
-                    // Inactive Tab Style
                     btn.classList.remove('bg-white', 'text-primary', 'shadow-md', 'transform', 'scale-105');
                     btn.classList.add('text-indigo-100', 'hover:bg-white/10');
                 }
@@ -613,7 +673,7 @@ def issue_book():
 
             // Render Content
             const content = document.getElementById('app-content');
-            content.innerHTML = ''; // Clear current
+            content.innerHTML = ''; 
             
             if (tabId === 'dashboard') renderDashboard(content);
             else if (tabId === 'mcq') renderMCQ(content);
@@ -621,7 +681,6 @@ def issue_book():
             else if (tabId === 'theory') renderTheory(content);
             else if (tabId === 'analytics') renderAnalytics(content);
             
-            // Re-run scripts/charts if needed
             if (tabId === 'dashboard') initDashboardCharts();
             if (tabId === 'analytics') initAnalyticsCharts();
         }
@@ -629,25 +688,21 @@ def issue_book():
         // --- RENDERERS ---
 
         function renderDashboard(container) {
+            const txt = i18n[currentLang];
             container.innerHTML = `
                 <div class="fade-in space-y-8">
                     <!-- Welcome Section -->
                     <div class="bg-white rounded-2xl shadow-md p-8 border-t-4 border-secondary overflow-hidden relative">
-                        <!-- Decorative circle -->
                         <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-indigo-50 rounded-full opacity-50"></div>
-                        
                         <div class="relative z-10">
-                            <h1 class="text-4xl font-bold text-gradient mb-3">Welcome, Future Topper!</h1>
-                            <p class="text-text/70 text-lg mb-6 max-w-2xl">
-                                Your <span class="font-semibold text-primary">Master Preboard Kit</span> is ready. 
-                                Dive into the 110-question bank covering Python, SQL, and Networks designed for the RBSE 2026 board exam.
-                            </p>
+                            <h1 class="text-4xl font-bold text-gradient mb-3">${txt.welcome_title}</h1>
+                            <p class="text-text/70 text-lg mb-6 max-w-2xl">${txt.welcome_subtitle}</p>
                             
                             <div class="bg-indigo-50 p-5 rounded-xl border border-indigo-100 flex items-start space-x-4">
                                 <div class="bg-white p-2 rounded-full shadow-sm text-2xl">👨‍🏫</div>
                                 <div>
-                                    <h3 class="font-bold text-primary text-lg">Teacher's Strategy Note</h3>
-                                    <p class="text-sm text-gray-600 mt-1 leading-relaxed">"Start with Section A to warm up your logic circuits. Move to Theory for deep concepts, and save the Coding challenges for when you're fully focused. Consistency is key!"</p>
+                                    <h3 class="font-bold text-primary text-lg">${txt.teacher_note_title}</h3>
+                                    <p class="text-sm text-gray-600 mt-1 leading-relaxed">${txt.teacher_note_text}</p>
                                 </div>
                             </div>
                         </div>
@@ -655,48 +710,41 @@ def issue_book():
 
                     <!-- Stats Grid -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <!-- Stat 1 -->
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-indigo-50 hover:shadow-lg transition-all duration-300 group">
                             <div class="flex items-center justify-between mb-4">
-                                <span class="text-gray-400 font-medium text-sm uppercase tracking-wider">Practice MCQs</span>
+                                <span class="text-gray-400 font-medium text-sm uppercase tracking-wider">${txt.stat_mcq}</span>
                                 <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
                                     <span class="text-lg font-bold">A</span>
                                 </div>
                             </div>
                             <span class="text-5xl font-bold text-gray-800">30</span>
-                            <div class="mt-2 text-sm text-gray-500">Rapid fire questions</div>
                         </div>
 
-                        <!-- Stat 2 -->
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-indigo-50 hover:shadow-lg transition-all duration-300 group">
                             <div class="flex items-center justify-between mb-4">
-                                <span class="text-gray-400 font-medium text-sm uppercase tracking-wider">Coding Problems</span>
+                                <span class="text-gray-400 font-medium text-sm uppercase tracking-wider">${txt.stat_code}</span>
                                 <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-sage group-hover:bg-sage group-hover:text-white transition-colors">
                                     <span class="text-lg font-bold">C</span>
                                 </div>
                             </div>
                             <span class="text-5xl font-bold text-gray-800">20</span>
-                            <div class="mt-2 text-sm text-gray-500">Python & SQL Scenarios</div>
                         </div>
 
-                        <!-- Stat 3 -->
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-indigo-50 hover:shadow-lg transition-all duration-300 group">
                             <div class="flex items-center justify-between mb-4">
-                                <span class="text-gray-400 font-medium text-sm uppercase tracking-wider">Total Bank</span>
+                                <span class="text-gray-400 font-medium text-sm uppercase tracking-wider">${txt.stat_total}</span>
                                 <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-white transition-colors">
                                     <span class="text-lg font-bold">Σ</span>
                                 </div>
                             </div>
                             <span class="text-5xl font-bold text-gray-800">110</span>
-                            <div class="mt-2 text-sm text-gray-500">Comprehensive Questions</div>
                         </div>
                     </div>
 
                     <!-- Chart Section -->
                     <div class="bg-white p-8 rounded-2xl shadow-md border border-gray-100">
                         <div class="flex justify-between items-center border-b border-gray-100 pb-4 mb-6">
-                            <h2 class="text-xl font-bold text-gray-800">Question Bank Composition</h2>
-                            <span class="text-xs font-semibold bg-gray-100 text-gray-500 px-3 py-1 rounded-full">Interactive Data</span>
+                            <h2 class="text-xl font-bold text-gray-800">${txt.chart_title}</h2>
                         </div>
                         <div class="chart-container">
                             <canvas id="dashboardChart"></canvas>
@@ -707,12 +755,13 @@ def issue_book():
         }
 
         function renderMCQ(container) {
+            const txt = i18n[currentLang];
             let html = `
                 <div class="fade-in max-w-4xl mx-auto">
                     <div class="mb-8 text-center">
-                        <span class="bg-primary/10 text-primary font-bold px-3 py-1 rounded-full text-xs uppercase tracking-widest">Section A</span>
-                        <h2 class="text-3xl font-bold text-gray-800 mt-2">Multiple Choice Challenge</h2>
-                        <p class="text-gray-500 mt-2">Select the best answer. Get instant feedback. Build your speed.</p>
+                        <span class="bg-primary/10 text-primary font-bold px-3 py-1 rounded-full text-xs uppercase tracking-widest">${txt.nav_mcq}</span>
+                        <h2 class="text-3xl font-bold text-gray-800 mt-2">${txt.sec_a_title}</h2>
+                        <p class="text-gray-500 mt-2">${txt.sec_a_sub}</p>
                     </div>
                     <div class="space-y-6">
             `;
@@ -726,11 +775,11 @@ def issue_book():
                         <div class="flex items-start gap-4">
                             <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500 text-sm shrink-0 mt-1">${item.id}</div>
                             <div class="w-full">
-                                <p class="text-lg font-medium text-gray-800 mb-5 leading-relaxed">${item.q}</p>
+                                <p class="text-lg font-medium text-gray-800 mb-5 leading-relaxed">${item.q[currentLang]}</p>
                                 <div class="grid grid-cols-1 gap-3">
                 `;
 
-                item.options.forEach((opt, optIndex) => {
+                item.options[currentLang].forEach((opt, optIndex) => {
                     let btnClass = "text-left px-5 py-3 rounded-xl border-2 transition-all duration-200 relative overflow-hidden ";
                     let icon = "";
                     
@@ -767,12 +816,12 @@ def issue_book():
                     html += `
                         <div class="mt-4 p-3 rounded-lg ${isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'} text-sm font-semibold fade-in flex items-center gap-2">
                             <span class="text-xl">${isCorrect ? '🎉' : '💡'}</span>
-                            ${isCorrect ? 'Spot on! Great logic.' : 'Incorrect. The correct answer is option (' + String.fromCharCode(65+item.correct) + ').'}
+                            ${isCorrect ? txt.correct_msg : txt.incorrect_msg + '(' + String.fromCharCode(65+item.correct) + ')'}
                         </div>
                     `;
                 }
 
-                html += `</div></div></div>`; // End Content/Flex/Card
+                html += `</div></div></div>`; 
             });
 
             html += `</div></div>`;
@@ -786,12 +835,13 @@ def issue_book():
         }
 
         function renderFillups(container) {
+            const txt = i18n[currentLang];
             let html = `
                 <div class="fade-in max-w-4xl mx-auto">
                     <div class="mb-8 text-center">
-                        <span class="bg-secondary/10 text-secondary font-bold px-3 py-1 rounded-full text-xs uppercase tracking-widest">Section B</span>
-                        <h2 class="text-3xl font-bold text-gray-800 mt-2">Fill in the Blanks</h2>
-                        <p class="text-gray-500 mt-2">Test your recall. Hover over the card or click to reveal.</p>
+                        <span class="bg-secondary/10 text-secondary font-bold px-3 py-1 rounded-full text-xs uppercase tracking-widest">${txt.nav_fillups}</span>
+                        <h2 class="text-3xl font-bold text-gray-800 mt-2">${txt.sec_b_title}</h2>
+                        <p class="text-gray-500 mt-2">${txt.sec_b_sub}</p>
                     </div>
                     <div class="grid grid-cols-1 gap-5">
             `;
@@ -803,16 +853,16 @@ def issue_book():
                         
                         <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                             <div class="flex-grow">
-                                <span class="text-xs font-bold text-secondary uppercase tracking-widest mb-1 block">Question ${index + 1}</span>
-                                <p class="text-lg text-gray-800 font-medium">${item.q}</p>
+                                <span class="text-xs font-bold text-secondary uppercase tracking-widest mb-1 block">Q ${index + 1}</span>
+                                <p class="text-lg text-gray-800 font-medium">${item.q[currentLang]}</p>
                             </div>
                             <div class="shrink-0 w-full md:w-48 text-right">
                                 <div class="relative w-full">
                                     <button onclick="toggleFillup(this)" class="w-full relative z-10 px-5 py-2.5 bg-white border-2 border-secondary text-secondary font-bold rounded-lg hover:bg-secondary hover:text-white transition-colors shadow-sm">
-                                        Reveal Answer
+                                        ${txt.reveal_btn}
                                     </button>
                                     <div class="hidden absolute top-0 left-0 w-full h-full flex items-center justify-center bg-secondary text-white font-bold rounded-lg shadow-inner z-20 cursor-pointer" onclick="toggleFillup(this.previousElementSibling)">
-                                        ${item.a}
+                                        ${item.a[currentLang]}
                                     </div>
                                 </div>
                             </div>
@@ -826,7 +876,6 @@ def issue_book():
         }
 
         function toggleFillup(btn) {
-            // Logic handled by swapping visual states slightly differently for "fun"
             const answerDiv = btn.nextElementSibling;
             if (answerDiv.classList.contains('hidden')) {
                 answerDiv.classList.remove('hidden');
@@ -837,153 +886,89 @@ def issue_book():
         }
 
         function renderTheory(container) {
+            const txt = i18n[currentLang];
             let html = `
                 <div class="fade-in max-w-5xl mx-auto">
                     <div class="mb-10 text-center">
-                        <span class="bg-primary/10 text-primary font-bold px-3 py-1 rounded-full text-xs uppercase tracking-widest">Sections C, D, E</span>
-                        <h2 class="text-3xl font-bold text-gray-800 mt-2">Theory & Code Library</h2>
-                        <p class="text-gray-500 mt-2">Deep dive into concepts. Tap cards to expand detailed solutions.</p>
+                        <span class="bg-primary/10 text-primary font-bold px-3 py-1 rounded-full text-xs uppercase tracking-widest">${txt.nav_theory}</span>
+                        <h2 class="text-3xl font-bold text-gray-800 mt-2">${txt.sec_cde_title}</h2>
+                        <p class="text-gray-500 mt-2">${txt.sec_cde_sub}</p>
                     </div>
                     
                     <div class="space-y-10">
             `;
 
-            // Section C
-            html += `
-                <div>
-                    <h3 class="flex items-center text-xl font-bold text-gray-800 mb-4">
-                        <span class="w-8 h-8 rounded-lg bg-indigo-100 text-primary flex items-center justify-center mr-3 text-sm">C</span>
-                        Very Short Answers (20 Qs)
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
-            
-            theoryDataC.forEach((item, i) => {
-                html += `
-                    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:border-primaryLight hover:shadow-md transition-all cursor-pointer group" onclick="toggleAccordion(this)">
-                        <div class="flex justify-between items-start">
-                            <h4 class="font-medium text-gray-700 group-hover:text-primary transition-colors pr-2">${item.q}</h4>
-                            <div class="w-6 h-6 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-primary group-hover:text-white transition-all text-sm shrink-0 font-bold">+</div>
-                        </div>
-                        <div class="hidden mt-4 pt-4 border-t border-gray-100 text-gray-600 text-sm leading-relaxed">
-                            <span class="font-bold text-sage">Ans:</span> ${item.a}
-                        </div>
-                    </div>
+            // Function to render a section
+            const renderSection = (title, badge, badgeColor, badgeTxtColor, data) => {
+                let sectionHtml = `
+                    <div>
+                        <h3 class="flex items-center text-xl font-bold text-gray-800 mb-4">
+                            <span class="w-8 h-8 rounded-lg ${badgeColor} ${badgeTxtColor} flex items-center justify-center mr-3 text-sm">${badge}</span>
+                            ${title}
+                        </h3>
+                        <div class="grid grid-cols-1 ${data === theoryDataC || data === theoryDataD ? 'md:grid-cols-2' : ''} gap-4">
                 `;
-            });
-            html += `</div></div>`;
-
-            // Section D
-            html += `
-                <div>
-                    <h3 class="flex items-center text-xl font-bold text-gray-800 mb-4">
-                        <span class="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center mr-3 text-sm">D</span>
-                        Short Answers (20 Qs)
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
-            
-            theoryDataD.forEach((item, i) => {
-                html += `
-                    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:border-secondary hover:shadow-md transition-all cursor-pointer group" onclick="toggleAccordion(this)">
-                        <div class="flex justify-between items-start">
-                            <h4 class="font-medium text-gray-700 group-hover:text-secondary transition-colors pr-2">${item.q}</h4>
-                            <div class="w-6 h-6 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-secondary group-hover:text-white transition-all text-sm shrink-0 font-bold">+</div>
-                        </div>
-                        <div class="hidden mt-4 pt-4 border-t border-gray-100 text-gray-600 text-sm leading-relaxed">
-                            <span class="font-bold text-secondary">Ans:</span> ${item.a}
-                        </div>
-                    </div>
-                `;
-            });
-            html += `</div></div>`;
-
-            // Section E
-            html += `
-                <div>
-                    <h3 class="flex items-center text-xl font-bold text-gray-800 mb-4">
-                        <span class="w-8 h-8 rounded-lg bg-emerald-100 text-sage flex items-center justify-center mr-3 text-sm">E</span>
-                        Long Answer & Coding (20 Qs)
-                    </h3>
-                    <div class="space-y-5">`;
-            
-            theoryDataE.forEach((item, i) => {
-                const isCode = item.type === 'code';
-                html += `
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group">
-                        <div class="p-6 cursor-pointer hover:bg-indigo-50/30 transition-colors flex justify-between items-center" onclick="toggleAccordion(this)">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-full ${isCode ? 'bg-gray-800 text-white' : 'bg-amber-100 text-secondary'} flex items-center justify-center text-lg shadow-sm">
-                                    ${isCode ? '</>' : '¶'}
-                                </div>
-                                <span class="font-semibold text-gray-800 text-lg">${item.q.substring(0, 60)}${item.q.length > 60 ? '...' : ''}</span>
+                
+                data.forEach((item) => {
+                    const isCode = item.type === 'code';
+                    sectionHtml += `
+                        <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:border-primaryLight hover:shadow-md transition-all cursor-pointer group" onclick="toggleAccordion(this)">
+                            <div class="flex justify-between items-start pointer-events-none">
+                                <h4 class="font-medium text-gray-700 group-hover:text-primary transition-colors pr-2 flex-grow">${item.q[currentLang]}</h4>
+                                <div class="accordion-icon w-6 h-6 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-primary group-hover:text-white transition-all text-sm shrink-0 font-bold">+</div>
                             </div>
-                            <span class="text-gray-400 group-hover:text-primary text-2xl transition-transform transform group-hover:translate-y-1">↓</span>
-                        </div>
-                        
-                        <div class="hidden p-0 border-t border-gray-100">
-                             <div class="p-6 bg-white">
-                                <p class="text-gray-500 italic mb-4 text-sm font-semibold">${item.q}</p>
+                            <div class="accordion-content hidden mt-4 pt-4 border-t border-gray-100 text-gray-600 text-sm leading-relaxed cursor-text" onclick="event.stopPropagation()">
                                 ${isCode ? 
-                                    `<div class="relative group/code">
-                                        <div class="absolute top-2 right-2 text-xs font-mono text-gray-400">Python/SQL</div>
-                                        <pre class="bg-gray-800 text-blue-100 p-5 rounded-xl overflow-x-auto text-sm font-mono shadow-inner border-2 border-gray-700">${item.a}</pre>
-                                     </div>` 
+                                    `<pre class="bg-code text-blue-100 p-4 rounded-lg overflow-x-auto font-mono text-xs shadow-inner">${item.a[currentLang]}</pre>` 
                                     : 
-                                    `<div class="bg-amber-50/50 p-5 rounded-xl border border-amber-100 text-gray-700 leading-relaxed">${item.a}</div>`
+                                    `<div class="bg-amber-50/50 p-4 rounded-lg border border-amber-100">${item.a[currentLang]}</div>`
                                 }
                             </div>
                         </div>
-                    </div>
-                `;
-            });
-            html += `</div></div></div>`;
+                    `;
+                });
+                sectionHtml += `</div></div>`;
+                return sectionHtml;
+            };
 
+            html += renderSection(txt.sec_c_header, "C", "bg-indigo-100", "text-primary", theoryDataC);
+            html += renderSection(txt.sec_d_header, "D", "bg-orange-100", "text-orange-600", theoryDataD);
+            html += renderSection(txt.sec_e_header, "E", "bg-emerald-100", "text-sage", theoryDataE);
+
+            html += `</div></div>`;
             container.innerHTML = html;
         }
 
         function toggleAccordion(element) {
-            let content;
-            let icon;
-            const children = element.children;
-            
-            // Logic to find content container and toggle icon
-            if (element.classList.contains('group')) { 
-               // Handling Very Short Answer Cards
-               if (children.length > 1 && children[1].classList.contains('hidden') !== undefined) {
-                   content = children[1];
-                   icon = children[0].querySelector('div:last-child');
-               } 
-               // Handling Long Answer Cards
-               else if (children.length > 1) {
-                   content = children[1];
-                   icon = children[0].querySelector('span:last-child');
-               }
-            }
+            const content = element.querySelector('.accordion-content');
+            const icon = element.querySelector('.accordion-icon');
 
             if (content.classList.contains('hidden')) {
                 content.classList.remove('hidden');
                 content.classList.add('fade-in');
                 if (icon) {
-                    if (icon.textContent === '+') { icon.textContent = '−'; icon.classList.add('bg-primary', 'text-white'); }
-                    else { icon.style.transform = 'rotate(180deg)'; }
+                    icon.textContent = '−';
+                    icon.classList.add('bg-primary', 'text-white');
                 }
             } else {
                 content.classList.add('hidden');
                 content.classList.remove('fade-in');
                 if (icon) {
-                    if (icon.textContent === '−') { icon.textContent = '+'; icon.classList.remove('bg-primary', 'text-white'); }
-                    else { icon.style.transform = 'rotate(0deg)'; }
+                    icon.textContent = '+';
+                    icon.classList.remove('bg-primary', 'text-white');
                 }
             }
         }
 
         function renderAnalytics(container) {
+            const txt = i18n[currentLang];
             container.innerHTML = `
                 <div class="fade-in max-w-5xl mx-auto space-y-8">
                     <div class="bg-white rounded-2xl shadow-md p-8 border-t-4 border-primary">
                         <div class="flex justify-between items-end mb-6">
                             <div>
-                                <h2 class="text-3xl font-bold text-gray-800">Blueprint Analysis</h2>
-                                <p class="text-gray-500 mt-1">Weightage distribution for RBSE 2026</p>
+                                <h2 class="text-3xl font-bold text-gray-800">${txt.blueprint_title}</h2>
+                                <p class="text-gray-500 mt-1">${txt.blueprint_sub}</p>
                             </div>
                             <div class="hidden md:block bg-indigo-50 px-4 py-2 rounded-lg text-primary font-bold text-sm">
                                 Total: 70 Marks (Theory)
@@ -998,7 +983,7 @@ def issue_book():
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="bg-emerald-50 rounded-2xl p-6 border border-emerald-100">
                             <h3 class="font-bold text-lg text-emerald-800 mb-3 flex items-center">
-                                <span class="bg-emerald-200 p-1 rounded mr-2">💎</span> High Value Topics
+                                <span class="bg-emerald-200 p-1 rounded mr-2">💎</span> ${txt.high_value}
                             </h3>
                             <ul class="space-y-3">
                                 <li class="flex items-start text-emerald-900 text-sm">
@@ -1011,22 +996,21 @@ def issue_book():
                                 </li>
                                 <li class="flex items-start text-emerald-900 text-sm">
                                     <span class="mr-2 mt-1">🔹</span>
-                                    <span><strong>Network Topology:</strong> Case studies are easy marks if concepts are clear.</span>
+                                    <span><strong>Network Topology:</strong> Case studies are easy marks.</span>
                                 </li>
                             </ul>
                         </div>
                         
                         <div class="bg-amber-50 rounded-2xl p-6 border border-amber-100">
                             <h3 class="font-bold text-lg text-amber-800 mb-3 flex items-center">
-                                <span class="bg-amber-200 p-1 rounded mr-2">🚀</span> Strategy Tip
+                                <span class="bg-amber-200 p-1 rounded mr-2">🚀</span> ${txt.strategy_tip}
                             </h3>
                             <p class="text-amber-900 text-sm leading-relaxed mb-4">
-                                Don't just read the code—<strong>write it</strong>. Syntax errors in Python (like indentation) or SQL (like semicolons) are common pitfalls.
+                                ${txt.strategy_text}
                             </p>
                             <div class="w-full bg-white rounded-lg h-2 overflow-hidden">
                                 <div class="bg-amber-400 h-full w-3/4"></div>
                             </div>
-                            <p class="text-xs text-amber-700 mt-2 text-right font-bold">Consistency is 75% of success</p>
                         </div>
                     </div>
                 </div>
@@ -1040,11 +1024,10 @@ def issue_book():
             new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['MCQ (Sec A)', 'Short Answer (Sec B, C)', 'Long/Code (Sec D, E)'],
+                    labels: ['MCQ', 'Short', 'Long/Code'],
                     datasets: [{
                         data: [30, 40, 40],
-                        // Updated to Vibrant Palette
-                        backgroundColor: ['#F59E0B', '#4F46E5', '#10B981'], // Amber, Indigo, Emerald
+                        backgroundColor: ['#F59E0B', '#4F46E5', '#10B981'],
                         hoverOffset: 4
                     }]
                 },
@@ -1064,18 +1047,11 @@ def issue_book():
             new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Python Programming', 'SQL / DBMS', 'Computer Networks', 'Data Structures', 'Soc. Impacts'],
+                    labels: ['Python', 'SQL', 'Networks', 'Data Structures', 'Soc. Impacts'],
                     datasets: [{
-                        label: 'Estimated Marks Weightage',
+                        label: 'Estimated Marks',
                         data: [40, 20, 10, 15, 5],
-                        // Gradient-like varied colors for bars
-                        backgroundColor: [
-                            '#4F46E5', // Indigo
-                            '#8B5CF6', // Purple
-                            '#EC4899', // Pink
-                            '#F59E0B', // Amber
-                            '#10B981'  // Emerald
-                        ],
+                        backgroundColor: ['#4F46E5', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981'],
                         borderRadius: 8,
                         barThickness: 40
                     }]
@@ -1101,7 +1077,6 @@ def issue_book():
             });
         }
 
-        // Start App
         window.addEventListener('DOMContentLoaded', init);
 
     </script>
