@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class 12 CS Preboard Master Kit | RBSE 2026</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Google Fonts: Poppins for a more modern, friendly vibe -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Chosen Palette: Vibrant Learning -->
+    <!-- 
+        Background: #F3F4F6 (Cool Gray)
+        Primary: #4F46E5 (Indigo) -> Header/Accents
+        Secondary: #F59E0B (Amber) -> Highlights/Buttons
+        Success: #10B981 (Emerald)
+        Error: #EF4444 (Red)
+        Text: #1F2937 (Gray 800)
+    -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bg: '#F3F4F6',
+                        text: '#1F2937',
+                        primary: '#4F46E5', // Indigo 600
+                        primaryLight: '#818CF8', // Indigo 400
+                        secondary: '#F59E0B', // Amber 500
+                        secondaryHover: '#D97706',
+                        card: '#FFFFFF',
+                        sage: '#10B981', // Emerald 500
+                        clay: '#EF4444', // Red 500
+                        code: '#EFF6FF'  // Blue 50
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Chart Container Styling as per requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Constraint for large screens */
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; /* Base height */
+            max-height: 400px; /* Max height */
+        }
+        
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F3F4F6; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #818CF8; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4F46E5; 
+        }
+
+        /* Animation utilities */
+        .fade-in {
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .correct-anim {
+            animation: bounceGreen 0.6s;
+        }
+        
+        @keyframes bounceGreen {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        /* Gradient Text Utility */
+        .text-gradient {
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-image: linear-gradient(to right, #4F46E5, #9333EA);
+        }
+    </style>
+</head>
+<body class="bg-bg text-text min-h-screen flex flex-col">
+
+    <!-- Application Structure Plan:
+         1. Header: Colorful Gradient background with White text/tabs.
+         2. Main Content:
+            - Dashboard: Colorful cards and charts.
+            - Quiz (Sec A): Modern card interface with colorful feedback.
+            - Flashcards (Sec B): Interactive cards.
+            - Theory: Cards with colored accents.
+            - Analytics: Vibrant charts.
+         3. Footer: Simple credits.
+    -->
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-primary to-purple-600 shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center text-white">
+                    <span class="text-2xl font-bold tracking-tight">CS PrepHub <span class="text-sm font-normal text-indigo-200 bg-white/20 px-2 py-0.5 rounded-full ml-2">RBSE '26</span></span>
+                </div>
+                <!-- Desktop Nav -->
+                <nav class="hidden md:flex space-x-2">
+                    <button onclick="switchTab('dashboard')" class="nav-btn px-4 py-2 rounded-full text-sm font-medium transition-all duration-200" data-tab="dashboard">Dashboard</button>
+                    <button onclick="switchTab('mcq')" class="nav-btn px-4 py-2 rounded-full text-sm font-medium transition-all duration-200" data-tab="mcq">Quiz (Sec A)</button>
+                    <button onclick="switchTab('fillups')" class="nav-btn px-4 py-2 rounded-full text-sm font-medium transition-all duration-200" data-tab="fillups">Fill-ups</button>
+                    <button onclick="switchTab('theory')" class="nav-btn px-4 py-2 rounded-full text-sm font-medium transition-all duration-200" data-tab="theory">Theory & Code</button>
+                    <button onclick="switchTab('analytics')" class="nav-btn px-4 py-2 rounded-full text-sm font-medium transition-all duration-200" data-tab="analytics">Analytics</button>
+                </nav>
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-white hover:bg-white/20 p-2 rounded-md focus:outline-none transition-colors">
+                        <span class="text-2xl">☰</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Nav Panel -->
+        <div id="mobile-menu" class="hidden md:hidden bg-indigo-700 shadow-inner">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <button onclick="switchTab('dashboard')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/10">Dashboard</button>
+                <button onclick="switchTab('mcq')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/10">Quiz (Sec A)</button>
+                <button onclick="switchTab('fillups')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/10">Fill-ups (Sec B)</button>
+                <button onclick="switchTab('theory')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/10">Theory & Code</button>
+                <button onclick="switchTab('analytics')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/10">Analytics</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main id="app-content" class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <!-- Views will be injected here via JS -->
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-auto">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <p class="text-center text-sm text-text/60">
+                Made for <span class="font-bold text-primary">Class 12 CS (083)</span> • RBSE 2026 Blueprint
+            </p>
+        </div>
+    </footer>
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <script>
+        // --- DATA STORE ---
+        
+        const mcqData = [
+            { id: 1, q: "Which of the following statements is true regarding the try...except block?", options: ["except block is executed if there is no error in the try block.", "else block is executed if there is an exception in the try block.", "finally block is executed regardless of whether an exception occurs or not.", "raise keyword is used to handle an exception."], correct: 2 },
+            { id: 2, q: "Which mode is used to open a text file for reading and writing, placing the file pointer at the beginning?", options: ["r+", "w+", "a+", "xb"], correct: 0 },
+            { id: 3, q: "In a Stack, the operation of adding an element is known as:", options: ["Pop", "Enqueue", "Push", "Traverse"], correct: 2 },
+            { id: 4, q: "What is the worst-case time complexity of Linear Search?", options: ["O(1)", "O(log n)", "O(n)", "O(n^2)"], correct: 2 },
+            { id: 5, q: "Identify the valid SQL command to remove a table named Student entirely from the database.", options: ["DELETE TABLE Student;", "DROP TABLE Student;", "REMOVE TABLE Student;", "TRUNCATE TABLE Student;"], correct: 1 },
+            { id: 6, q: "Which aggregate function ignores NULL values in SQL?", options: ["COUNT(*)", "MAX()", "SUM()", "All of the above (except COUNT(*))"], correct: 3 },
+            { id: 7, q: "Which network device is used to connect two dissimilar networks (e.g., LAN to Internet)?", options: ["Switch", "Hub", "Gateway", "Repeater"], correct: 2 },
+            { id: 8, q: "In Python, pickle module is used for:", options: ["Serializing Python objects structure.", "Compressing data.", "Encrypting data.", "Formatting text output."], correct: 0 },
+            { id: 9, q: "Which of the following is NOT a valid Queue operation?", options: ["Enqueue", "Dequeue", "Peek", "Push"], correct: 3 },
+            { id: 10, q: "What is the result of 3 + 4 * 2 in postfix notation?", options: ["3 4 2 * +", "3 4 * 2 +", "+ 3 * 4 2", "3 4 2 + *"], correct: 0 },
+            { id: 11, q: "Which protocol is used for secure communication over a computer network?", options: ["HTTP", "FTP", "HTTPS", "SMTP"], correct: 2 },
+            { id: 12, q: "In SQL, the pattern matching wildcard % matches:", options: ["Exactly one character.", "Zero or more characters.", "Exactly two characters.", "Numeric values only."], correct: 1 },
+            { id: 13, q: "Which function is used to read a single line from a text file?", options: ["read()", "readlines()", "readline()", "readall()"], correct: 2 },
+            { id: 14, q: "What does the seek() method do in file handling?", options: ["Finds a specific string in the file.", "Moves the file pointer to a specific position.", "Returns the current position of the file pointer.", "Deletes the file content."], correct: 1 },
+            { id: 15, q: "Which sorting algorithm works by repeatedly swapping adjacent elements if they are in the wrong order?", options: ["Selection Sort", "Insertion Sort", "Bubble Sort", "Merge Sort"], correct: 2 },
+            { id: 16, q: "A variable declared inside a function is called a:", options: ["Global variable", "Local variable", "Static variable", "Class variable"], correct: 1 },
+            { id: 17, q: "Which clause is used to filter groups in SQL?", options: ["WHERE", "ORDER BY", "HAVING", "DISTINCT"], correct: 2 },
+            { id: 18, q: "The specific address of a specific webpage is called:", options: ["HTTP", "URL", "ISP", "HTML"], correct: 1 },
+            { id: 19, q: "Which exception is raised when we try to open a file that does not exist in read mode?", options: ["IOError", "FileFoundError", "FileNotFoundError", "ImportError"], correct: 2 },
+            { id: 20, q: "To use the mean() function, which module needs to be imported?", options: ["math", "statistics", "random", "pickle"], correct: 1 },
+            { id: 21, q: "In a CSV file, what is the default delimiter?", options: ["Tab", "Space", "Comma", "Semicolon"], correct: 2 },
+            { id: 22, q: "What does FIFO stand for?", options: ["First In Fast Out", "First In First Out", "Fast In First Out", "First In Final Out"], correct: 1 },
+            { id: 23, q: "Which topology requires a central controller or hub?", options: ["Star", "Mesh", "Bus", "Ring"], correct: 0 },
+            { id: 24, q: "In SQL, ALTER TABLE is a command of which type?", options: ["DML", "DDL", "DCL", "TCL"], correct: 1 },
+            { id: 25, q: "The csv.writer object writes a row of data into the specified file using which method?", options: ["write()", "writerows()", "writerow()", "dump()"], correct: 2 },
+            { id: 26, q: "Which of the following is an example of guided media?", options: ["Microwave", "Radio Wave", "Fiber Optic Cable", "Satellite"], correct: 2 },
+            { id: 27, q: "What will be the output of round(45.678, 2)?", options: ["45.6", "45.67", "45.68", "46.0"], correct: 2 },
+            { id: 28, q: "In Python, which keyword is used to define a function?", options: ["func", "def", "function", "define"], correct: 1 },
+            { id: 29, q: "Which constraint in SQL ensures that all values in a column are different?", options: ["NOT NULL", "UNIQUE", "CHECK", "DEFAULT"], correct: 1 },
+            { id: 30, q: "What is the full form of MAC address?", options: ["Media Access Control", "Memory Access Code", "Mobile Access Control", "Main Access Computer"], correct: 0 }
+        ];
+
+        const fillupsData = [
+            { q: "The __________ block in exception handling is executed only when no exception occurs in the try block.", a: "else" },
+            { q: "The __________ method returns the current position of the file object.", a: "tell()" },
+            { q: "A queue follows the principle of __________ (LIFO/FIFO).", a: "FIFO" },
+            { q: "In Python, the __________ module is required to work with binary files using dump() and load().", a: "pickle" },
+            { q: "Sorting implies arranging data in a particular __________.", a: "order" },
+            { q: "The number of tuples in a relation is called its __________.", a: "Cardinality" },
+            { q: "The SQL command used to modify the structure of an existing table is __________.", a: "ALTER TABLE" },
+            { q: "__________ acts as a firewall and filters the incoming and outgoing traffic in a network.", a: "Firewall" },
+            { q: "The command to install a python library using pip is __________.", a: "pip install" },
+            { q: "__________ Join returns all rows when there is a match in one of the tables.", a: "Outer" },
+            { q: "The relative path starts from the __________ working directory.", a: "current" },
+            { q: "In a Stack, the condition where we try to pop an element from an empty stack is called __________.", a: "Underflow" },
+            { q: "__________ Search requires the list to be sorted before searching.", a: "Binary" },
+            { q: "The __________ clause in SQL is used to sort the result-set in ascending or descending order.", a: "ORDER BY" },
+            { q: "A __________ is a network device that forwards data packets between computer networks.", a: "Router" },
+            { q: "The __________ function in Python is used to accept input from the user as a string.", a: "input()" },
+            { q: "In the open() function, the mode __________ is used to append data to the end of a binary file.", a: "'ab'" },
+            { q: "__________ is a set of rules that governs data communication.", a: "Protocol" },
+            { q: "To eliminate duplicate values in a SELECT statement, we use the __________ keyword.", a: "DISTINCT" },
+            { q: "The assert statement in Python is used for __________.", a: "debugging" }
+        ];
+
+        const theoryDataC = [
+            { q: "Define 'Exception' in Python.", a: "An event that occurs during the execution of a program that disrupts the normal flow of instructions (e.g., division by zero)." },
+            { q: "Write the syntax to close a file object named f.", a: "f.close()" },
+            { q: "What is a 'delimiter' in a CSV file?", a: "A character used to separate values in a text file (e.g., comma , in CSV)." },
+            { q: "Name the two primary operations of a Stack.", a: "Push and Pop." },
+            { q: "What is the purpose of the pass statement?", a: "It is a null statement in Python. It is used when a statement is required syntactically but you do not want any command or code to execute." },
+            { q: "Differentiate between list and tuple in one sentence.", a: "Lists are mutable (changeable), whereas Tuples are immutable (unchangeable)." },
+            { q: "Write a Python statement to open a file \"data.txt\" for reading.", a: "f = open(\"data.txt\", \"r\")" },
+            { q: "What is the degree of a relation in SQL?", a: "The number of attributes (columns) in a relation (table)." },
+            { q: "Name any two DML commands.", a: "INSERT, UPDATE, DELETE." },
+            { q: "Expand the term TCP/IP.", a: "Transmission Control Protocol / Internet Protocol." }
+        ];
+
+        const theoryDataE = [
+            { 
+                q: "1. File Handling (Text): Write a Python program to read a text file named \"article.txt\". Count and display the number of uppercase characters, lowercase characters, and digits in the file.",
+                type: "code",
+                a: `def count_chars():
+    upper = lower = digits = 0
+    with open("article.txt", "r") as f:
+        content = f.read()
+        for char in content:
+            if char.isupper():
+                upper += 1
+            elif char.islower():
+                lower += 1
+            elif char.isdigit():
+                digits += 1
+    print(f"Uppercase: {upper}, Lowercase: {lower}, Digits: {digits}")`
+            },
+            {
+                q: "8. SQL (DDL & DML): Write SQL commands for table EMPLOYEE: Create table, Insert 3 records, Increase Salary of 'IT' by 10%, Delete Salary < 5000.",
+                type: "code",
+                a: `-- a) Create Table
+CREATE TABLE EMPLOYEE (
+    EmpID INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Dept VARCHAR(30),
+    Salary DECIMAL(10, 2)
+);
+
+-- b) Insert Records
+INSERT INTO EMPLOYEE VALUES (1, 'Raj', 'IT', 60000);
+INSERT INTO EMPLOYEE VALUES (2, 'Simran', 'HR', 45000);
+INSERT INTO EMPLOYEE VALUES (3, 'Ravi', 'IT', 55000);
+
+-- c) Increase Salary
+UPDATE EMPLOYEE SET Salary = Salary * 1.10 WHERE Dept = 'IT';
+
+-- d) Delete Records
+DELETE FROM EMPLOYEE WHERE Salary < 50000;`
+            },
+            {
+                q: "11. Networking (Case Study): Alpha School has 4 wings (Admin, Junior, Senior, Hostel). Distances: Admin-Junior (50m), Admin-Senior (100m), Admin-Hostel (500m), Junior-Senior (30m). Suggest Topology and Repeater placement.",
+                type: "text",
+                a: "<b>a) Topology: Star Topology.</b> Connecting every wing to the Admin wing allows for centralized control and easy fault isolation.<br><br><b>b) Repeater:</b> Needed for the <b>Admin to Hostel link</b>. The distance is 500m, which exceeds the typical 100m range of Ethernet cables."
+            }
+        ];
+
+        // --- APP STATE ---
+        let currentTab = 'dashboard';
+        let mcqSelections = new Array(mcqData.length).fill(null); // stores user answers index
+        
+        // --- CORE FUNCTIONS ---
+
+        function init() {
+            switchTab('dashboard');
+            // Mobile menu toggle
+            document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+                const menu = document.getElementById('mobile-menu');
+                menu.classList.toggle('hidden');
+            });
+        }
+
+        function switchTab(tabId) {
+            currentTab = tabId;
+            
+            // Update Nav Styles
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if (btn.dataset.tab === tabId) {
+                    // Active Tab Style
+                    btn.classList.add('bg-white', 'text-primary', 'shadow-md', 'transform', 'scale-105');
+                    btn.classList.remove('text-indigo-100', 'hover:bg-white/10');
+                } else {
+                    // Inactive Tab Style
+                    btn.classList.remove('bg-white', 'text-primary', 'shadow-md', 'transform', 'scale-105');
+                    btn.classList.add('text-indigo-100', 'hover:bg-white/10');
+                }
+            });
+
+            // Hide Mobile Menu
+            document.getElementById('mobile-menu').classList.add('hidden');
+
+            // Render Content
+            const content = document.getElementById('app-content');
+            content.innerHTML = ''; // Clear current
+            
+            if (tabId === 'dashboard') renderDashboard(content);
+            else if (tabId === 'mcq') renderMCQ(content);
+            else if (tabId === 'fillups') renderFillups(content);
+            else if (tabId === 'theory') renderTheory(content);
+            else if (tabId === 'analytics') renderAnalytics(content);
+            
+            // Re-run scripts/charts if needed
+            if (tabId === 'dashboard') initDashboardCharts();
+            if (tabId === 'analytics') initAnalyticsCharts();
+        }
+
+        // --- RENDERERS ---
+
+        function renderDashboard(container) {
+            container.innerHTML = `
+                <div class="fade-in space-y-8">
+                    <!-- Welcome Section -->
+                    <div class="bg-white rounded-2xl shadow-md p-8 border-t-4 border-secondary overflow-hidden relative">
+                        <!-- Decorative circle -->
+                        <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-indigo-50 rounded-full opacity-50"></div>
+                        
+                        <div class="relative z-10">
+                            <h1 class="text-4xl font-bold text-gradient mb-3">Welcome, Future Topper!</h1>
+                            <p class="text-text/70 text-lg mb-6 max-w-2xl">
+                                Your <span class="font-semibold text-primary">Master Preboard Kit</span> is ready. 
+                                Dive into the 110-question bank covering Python, SQL, and Networks designed for the RBSE 2026 board exam.
+                            </p>
+                            
+                            <div class="bg-indigo-50 p-5 rounded-xl border border-indigo-100 flex items-start space-x-4">
+                                <div class="bg-white p-2 rounded-full shadow-sm text-2xl">👨‍🏫</div>
+                                <div>
+                                    <h3 class="font-bold text-primary text-lg">Teacher's Strategy Note</h3>
+                                    <p class="text-sm text-gray-600 mt-1 leading-relaxed">"Start with Section A to warm up your logic circuits. Move to Theory for deep concepts, and save the Coding challenges for when you're fully focused. Consistency is key!"</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Stat 1 -->
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-indigo-50 hover:shadow-lg transition-all duration-300 group">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-gray-400 font-medium text-sm uppercase tracking-wider">Practice MCQs</span>
+                                <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                                    <span class="text-lg font-bold">A</span>
+                                </div>
+                            </div>
+                            <span class="text-5xl font-bold text-gray-800">30</span>
+                            <div class="mt-2 text-sm text-gray-500">Rapid fire questions</div>
+                        </div>
+
+                        <!-- Stat 2 -->
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-indigo-50 hover:shadow-lg transition-all duration-300 group">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-gray-400 font-medium text-sm uppercase tracking-wider">Coding Problems</span>
+                                <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-sage group-hover:bg-sage group-hover:text-white transition-colors">
+                                    <span class="text-lg font-bold">C</span>
+                                </div>
+                            </div>
+                            <span class="text-5xl font-bold text-gray-800">20</span>
+                            <div class="mt-2 text-sm text-gray-500">Python & SQL Scenarios</div>
+                        </div>
+
+                        <!-- Stat 3 -->
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-indigo-50 hover:shadow-lg transition-all duration-300 group">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-gray-400 font-medium text-sm uppercase tracking-wider">Total Bank</span>
+                                <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-white transition-colors">
+                                    <span class="text-lg font-bold">Σ</span>
+                                </div>
+                            </div>
+                            <span class="text-5xl font-bold text-gray-800">110</span>
+                            <div class="mt-2 text-sm text-gray-500">Comprehensive Questions</div>
+                        </div>
+                    </div>
+
+                    <!-- Chart Section -->
+                    <div class="bg-white p-8 rounded-2xl shadow-md border border-gray-100">
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-4 mb-6">
+                            <h2 class="text-xl font-bold text-gray-800">Question Bank Composition</h2>
+                            <span class="text-xs font-semibold bg-gray-100 text-gray-500 px-3 py-1 rounded-full">Interactive Data</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="dashboardChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderMCQ(container) {
+            let html = `
+                <div class="fade-in max-w-4xl mx-auto">
+                    <div class="mb-8 text-center">
+                        <span class="bg-primary/10 text-primary font-bold px-3 py-1 rounded-full text-xs uppercase tracking-widest">Section A</span>
+                        <h2 class="text-3xl font-bold text-gray-800 mt-2">Multiple Choice Challenge</h2>
+                        <p class="text-gray-500 mt-2">Select the best answer. Get instant feedback. Build your speed.</p>
+                    </div>
+                    <div class="space-y-6">
+            `;
+
+            mcqData.forEach((item, index) => {
+                const isAnswered = mcqSelections[index] !== null;
+                const userChoice = mcqSelections[index];
+                
+                html += `
+                    <div class="bg-white rounded-2xl shadow-sm p-6 border-l-4 ${isAnswered ? (userChoice === item.correct ? 'border-sage' : 'border-clay') : 'border-primary'} transition-all hover:shadow-md" id="mcq-${item.id}">
+                        <div class="flex items-start gap-4">
+                            <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500 text-sm shrink-0 mt-1">${item.id}</div>
+                            <div class="w-full">
+                                <p class="text-lg font-medium text-gray-800 mb-5 leading-relaxed">${item.q}</p>
+                                <div class="grid grid-cols-1 gap-3">
+                `;
+
+                item.options.forEach((opt, optIndex) => {
+                    let btnClass = "text-left px-5 py-3 rounded-xl border-2 transition-all duration-200 relative overflow-hidden ";
+                    let icon = "";
+                    
+                    if (isAnswered) {
+                        if (optIndex === item.correct) {
+                            btnClass += "bg-emerald-50 border-emerald-400 text-emerald-800 font-medium"; 
+                            icon = "<span class='absolute right-4 text-emerald-600 font-bold'>✓</span>";
+                        } else if (optIndex === userChoice && userChoice !== item.correct) {
+                            btnClass += "bg-red-50 border-red-400 text-red-800";
+                            icon = "<span class='absolute right-4 text-red-600 font-bold'>✗</span>";
+                        } else {
+                            btnClass += "bg-gray-50 border-transparent text-gray-400 opacity-60"; 
+                        }
+                    } else {
+                        btnClass += "bg-white border-gray-100 text-gray-600 hover:border-primaryLight hover:bg-indigo-50 hover:text-primary cursor-pointer shadow-sm";
+                    }
+
+                    html += `
+                        <button 
+                            ${isAnswered ? 'disabled' : ''} 
+                            onclick="handleMCQ(${index}, ${optIndex})" 
+                            class="${btnClass}">
+                            <span class="inline-block w-6 font-bold opacity-50 mr-2">${String.fromCharCode(65+optIndex)}.</span> ${opt}
+                            ${icon}
+                        </button>
+                    `;
+                });
+
+                html += `</div>`; // End Grid
+                
+                // Feedback
+                if (isAnswered) {
+                    const isCorrect = userChoice === item.correct;
+                    html += `
+                        <div class="mt-4 p-3 rounded-lg ${isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'} text-sm font-semibold fade-in flex items-center gap-2">
+                            <span class="text-xl">${isCorrect ? '🎉' : '💡'}</span>
+                            ${isCorrect ? 'Spot on! Great logic.' : 'Incorrect. The correct answer is option (' + String.fromCharCode(65+item.correct) + ').'}
+                        </div>
+                    `;
+                }
+
+                html += `</div></div></div>`; // End Content/Flex/Card
+            });
+
+            html += `</div></div>`;
+            container.innerHTML = html;
+        }
+
+        function handleMCQ(qIndex, optIndex) {
+            mcqSelections[qIndex] = optIndex;
+            // Re-render to show state
+            renderMCQ(document.getElementById('app-content'));
+        }
+
+        function renderFillups(container) {
+            let html = `
+                <div class="fade-in max-w-4xl mx-auto">
+                    <div class="mb-8 text-center">
+                        <span class="bg-secondary/10 text-secondary font-bold px-3 py-1 rounded-full text-xs uppercase tracking-widest">Section B</span>
+                        <h2 class="text-3xl font-bold text-gray-800 mt-2">Fill in the Blanks</h2>
+                        <p class="text-gray-500 mt-2">Test your recall. Hover over the card or click to reveal.</p>
+                    </div>
+                    <div class="grid grid-cols-1 gap-5">
+            `;
+
+            fillupsData.forEach((item, index) => {
+                html += `
+                    <div class="group bg-white rounded-xl shadow-sm p-6 border-l-8 border-secondary hover:shadow-lg transition-all duration-300 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-amber-50 rounded-full -mt-10 -mr-10 z-0 transition-transform group-hover:scale-150"></div>
+                        
+                        <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                            <div class="flex-grow">
+                                <span class="text-xs font-bold text-secondary uppercase tracking-widest mb-1 block">Question ${index + 1}</span>
+                                <p class="text-lg text-gray-800 font-medium">${item.q}</p>
+                            </div>
+                            <div class="shrink-0 w-full md:w-48 text-right">
+                                <div class="relative w-full">
+                                    <button onclick="toggleFillup(this)" class="w-full relative z-10 px-5 py-2.5 bg-white border-2 border-secondary text-secondary font-bold rounded-lg hover:bg-secondary hover:text-white transition-colors shadow-sm">
+                                        Reveal Answer
+                                    </button>
+                                    <div class="hidden absolute top-0 left-0 w-full h-full flex items-center justify-center bg-secondary text-white font-bold rounded-lg shadow-inner z-20 cursor-pointer" onclick="toggleFillup(this.previousElementSibling)">
+                                        ${item.a}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div></div>`;
+            container.innerHTML = html;
+        }
+
+        function toggleFillup(btn) {
+            // Logic handled by swapping visual states slightly differently for "fun"
+            const answerDiv = btn.nextElementSibling;
+            if (answerDiv.classList.contains('hidden')) {
+                answerDiv.classList.remove('hidden');
+                answerDiv.classList.add('fade-in');
+            } else {
+                answerDiv.classList.add('hidden');
+            }
+        }
+
+        function renderTheory(container) {
+            let html = `
+                <div class="fade-in max-w-5xl mx-auto">
+                    <div class="mb-10 text-center">
+                        <span class="bg-primary/10 text-primary font-bold px-3 py-1 rounded-full text-xs uppercase tracking-widest">Sections C, D, E</span>
+                        <h2 class="text-3xl font-bold text-gray-800 mt-2">Theory & Code Library</h2>
+                        <p class="text-gray-500 mt-2">Deep dive into concepts. Tap cards to expand detailed solutions.</p>
+                    </div>
+                    
+                    <div class="space-y-10">
+            `;
+
+            // Section C
+            html += `
+                <div>
+                    <h3 class="flex items-center text-xl font-bold text-gray-800 mb-4">
+                        <span class="w-8 h-8 rounded-lg bg-indigo-100 text-primary flex items-center justify-center mr-3 text-sm">C</span>
+                        Very Short Answers
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
+            
+            theoryDataC.forEach((item, i) => {
+                html += `
+                    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:border-primaryLight hover:shadow-md transition-all cursor-pointer group" onclick="toggleAccordion(this)">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-medium text-gray-700 group-hover:text-primary transition-colors pr-2">${item.q}</h4>
+                            <div class="w-6 h-6 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-primary group-hover:text-white transition-all text-sm shrink-0 font-bold">+</div>
+                        </div>
+                        <div class="hidden mt-4 pt-4 border-t border-gray-100 text-gray-600 text-sm leading-relaxed">
+                            <span class="font-bold text-sage">Ans:</span> ${item.a}
+                        </div>
+                    </div>
+                `;
+            });
+            html += `</div></div>`;
+
+            // Section E
+            html += `
+                <div>
+                    <h3 class="flex items-center text-xl font-bold text-gray-800 mb-4">
+                        <span class="w-8 h-8 rounded-lg bg-emerald-100 text-sage flex items-center justify-center mr-3 text-sm">E</span>
+                        Long Answer & Coding
+                    </h3>
+                    <div class="space-y-5">`;
+            
+            theoryDataE.forEach((item, i) => {
+                const isCode = item.type === 'code';
+                html += `
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group">
+                        <div class="p-6 cursor-pointer hover:bg-indigo-50/30 transition-colors flex justify-between items-center" onclick="toggleAccordion(this)">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full ${isCode ? 'bg-gray-800 text-white' : 'bg-amber-100 text-secondary'} flex items-center justify-center text-lg shadow-sm">
+                                    ${isCode ? '</>' : '¶'}
+                                </div>
+                                <span class="font-semibold text-gray-800 text-lg">${item.q.substring(0, 60)}${item.q.length > 60 ? '...' : ''}</span>
+                            </div>
+                            <span class="text-gray-400 group-hover:text-primary text-2xl transition-transform transform group-hover:translate-y-1">↓</span>
+                        </div>
+                        
+                        <div class="hidden p-0 border-t border-gray-100">
+                             <div class="p-6 bg-white">
+                                <p class="text-gray-500 italic mb-4 text-sm">${item.q}</p>
+                                ${isCode ? 
+                                    `<div class="relative group/code">
+                                        <div class="absolute top-2 right-2 text-xs font-mono text-gray-400">Python/SQL</div>
+                                        <pre class="bg-gray-800 text-blue-100 p-5 rounded-xl overflow-x-auto text-sm font-mono shadow-inner border-2 border-gray-700">${item.a}</pre>
+                                     </div>` 
+                                    : 
+                                    `<div class="bg-amber-50/50 p-5 rounded-xl border border-amber-100 text-gray-700 leading-relaxed">${item.a}</div>`
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += `</div></div></div>`;
+
+            container.innerHTML = html;
+        }
+
+        function toggleAccordion(element) {
+            let content;
+            let icon;
+            const children = element.children;
+            
+            // Logic to find content container and toggle icon
+            if (element.classList.contains('group')) { 
+               // Handling Very Short Answer Cards
+               if (children.length > 1 && children[1].classList.contains('hidden') !== undefined) {
+                   content = children[1];
+                   icon = children[0].querySelector('div:last-child');
+               } 
+               // Handling Long Answer Cards
+               else if (children.length > 1) {
+                   content = children[1];
+                   icon = children[0].querySelector('span:last-child');
+               }
+            }
+
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                content.classList.add('fade-in');
+                if (icon) {
+                    if (icon.textContent === '+') { icon.textContent = '−'; icon.classList.add('bg-primary', 'text-white'); }
+                    else { icon.style.transform = 'rotate(180deg)'; }
+                }
+            } else {
+                content.classList.add('hidden');
+                content.classList.remove('fade-in');
+                if (icon) {
+                    if (icon.textContent === '−') { icon.textContent = '+'; icon.classList.remove('bg-primary', 'text-white'); }
+                    else { icon.style.transform = 'rotate(0deg)'; }
+                }
+            }
+        }
+
+        function renderAnalytics(container) {
+            container.innerHTML = `
+                <div class="fade-in max-w-5xl mx-auto space-y-8">
+                    <div class="bg-white rounded-2xl shadow-md p-8 border-t-4 border-primary">
+                        <div class="flex justify-between items-end mb-6">
+                            <div>
+                                <h2 class="text-3xl font-bold text-gray-800">Blueprint Analysis</h2>
+                                <p class="text-gray-500 mt-1">Weightage distribution for RBSE 2026</p>
+                            </div>
+                            <div class="hidden md:block bg-indigo-50 px-4 py-2 rounded-lg text-primary font-bold text-sm">
+                                Total: 70 Marks (Theory)
+                            </div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <canvas id="topicChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-emerald-50 rounded-2xl p-6 border border-emerald-100">
+                            <h3 class="font-bold text-lg text-emerald-800 mb-3 flex items-center">
+                                <span class="bg-emerald-200 p-1 rounded mr-2">💎</span> High Value Topics
+                            </h3>
+                            <ul class="space-y-3">
+                                <li class="flex items-start text-emerald-900 text-sm">
+                                    <span class="mr-2 mt-1">🔹</span>
+                                    <span><strong>SQL Joins & Grouping:</strong> Essential for 4-mark questions.</span>
+                                </li>
+                                <li class="flex items-start text-emerald-900 text-sm">
+                                    <span class="mr-2 mt-1">🔹</span>
+                                    <span><strong>Python File Handling:</strong> CSV/Binary coding is a guaranteed segment.</span>
+                                </li>
+                                <li class="flex items-start text-emerald-900 text-sm">
+                                    <span class="mr-2 mt-1">🔹</span>
+                                    <span><strong>Network Topology:</strong> Case studies are easy marks if concepts are clear.</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-amber-50 rounded-2xl p-6 border border-amber-100">
+                            <h3 class="font-bold text-lg text-amber-800 mb-3 flex items-center">
+                                <span class="bg-amber-200 p-1 rounded mr-2">🚀</span> Strategy Tip
+                            </h3>
+                            <p class="text-amber-900 text-sm leading-relaxed mb-4">
+                                Don't just read the code—<strong>write it</strong>. Syntax errors in Python (like indentation) or SQL (like semicolons) are common pitfalls.
+                            </p>
+                            <div class="w-full bg-white rounded-lg h-2 overflow-hidden">
+                                <div class="bg-amber-400 h-full w-3/4"></div>
+                            </div>
+                            <p class="text-xs text-amber-700 mt-2 text-right font-bold">Consistency is 75% of success</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- CHARTS ---
+
+        function initDashboardCharts() {
+            const ctx = document.getElementById('dashboardChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['MCQ (Sec A)', 'Short Answer (Sec B, C)', 'Long/Code (Sec D, E)'],
+                    datasets: [{
+                        data: [30, 40, 40],
+                        // Updated to Vibrant Palette
+                        backgroundColor: ['#F59E0B', '#4F46E5', '#10B981'], // Amber, Indigo, Emerald
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { padding: 20, font: { family: 'Poppins' } } }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+
+        function initAnalyticsCharts() {
+            const ctx = document.getElementById('topicChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Python Programming', 'SQL / DBMS', 'Computer Networks', 'Data Structures', 'Soc. Impacts'],
+                    datasets: [{
+                        label: 'Estimated Marks Weightage',
+                        data: [40, 20, 10, 15, 5],
+                        // Gradient-like varied colors for bars
+                        backgroundColor: [
+                            '#4F46E5', // Indigo
+                            '#8B5CF6', // Purple
+                            '#EC4899', // Pink
+                            '#F59E0B', // Amber
+                            '#10B981'  // Emerald
+                        ],
+                        borderRadius: 8,
+                        barThickness: 40
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { color: '#F3F4F6' },
+                            ticks: { font: { family: 'Poppins' } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { family: 'Poppins' } }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // Start App
+        window.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</body>
+</html>
