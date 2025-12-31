@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS Pre-Board Master 2026 | RBSE Class 12</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Google Fonts: Noto Sans Devanagari for Hindi support -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Chosen Palette: Academic Blue & Slate -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb', // Academic Blue
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        },
+                        slate: {
+                            850: '#1e293b', // Code bg
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans Devanagari', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Chart Container Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        /* Animation utilities */
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Preformatted Code Styling */
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+    <!-- Header -->
+    <header class="bg-brand-700 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center h-auto md:h-16 py-3 md:py-0">
+                <div class="flex items-center mb-2 md:mb-0">
+                    <span class="text-2xl font-bold tracking-tight">CS Pre-Board Master <span class="text-sm bg-brand-600 px-2 py-0.5 rounded-full ml-2 text-blue-100">2026</span></span>
+                </div>
+                
+                <!-- Navigation Tabs -->
+                <nav class="flex flex-wrap justify-center gap-2" id="nav-container">
+                    <!-- Buttons injected via JS -->
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="app-content" class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <!-- Views will be injected here -->
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-auto">
+        <div class="max-w-7xl mx-auto py-6 px-4 text-center">
+            <p class="text-slate-500 text-sm">
+                आधारित: <strong>RBSE प्री-बोर्ड परीक्षा 2025-26 समाधान कुंजी</strong><br>
+                कक्षा 12 कंप्यूटर विज्ञान (083)
+            </p>
+        </div>
+    </footer>
+
+    <!-- 
+    Application Structure Plan:
+    1. Dashboard: Overview of Marks Distribution (Chart.js) and Exam details.
+    2. Sections A-F: Dynamic rendering based on JSON data derived from the source report.
+       - Sec A: MCQ Quiz Mode.
+       - Sec B: Interactive Fill-ups.
+       - Sec C-F: Accordion style for Q&A learning.
+    3. Code Blocks: Syntax-highlighted style containers.
+    -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <script>
+        // --- DATA SOURCE (From RBSE_Class_12_CS_Preboard_Solution_Key.md) ---
+        
+        const examData = {
+            meta: {
+                subject: "कंप्यूटर विज्ञान (083)",
+                class: "12",
+                totalMarks: 56,
+                time: "3 घंटे 15 मिनट"
+            },
+            sections: [
+                { id: 'dashboard', title: 'डैशबोर्ड (Dashboard)', type: 'dashboard' },
+                { id: 'secA', title: 'खण्ड - अ (MCQ)', type: 'mcq', marks: 9, qCount: 9 },
+                { id: 'secB', title: 'खण्ड - ब (Blanks)', type: 'fillups', marks: 4, qCount: 4 },
+                { id: 'secC', title: 'खण्ड - स (VSA)', type: 'qa', marks: 8, qCount: 8 },
+                { id: 'secD', title: 'खण्ड - द (Short)', type: 'qa', marks: 18, qCount: 12 },
+                { id: 'secE', title: 'खण्ड - य (Long)', type: 'code', marks: 9, qCount: 3 },
+                { id: 'secF', title: 'खण्ड - र (Essay)', type: 'code', marks: 8, qCount: 2 }
+            ],
+            questions: {
+                secA: [
+                    { id: 1, q: "try...except ब्लॉक के संबंध में निम्नलिखित में से कौन सा कथन सत्य है?", options: ["(अ) यदि try ब्लॉक में कोई त्रुटि नहीं है तो except ब्लॉक निष्पादित होता है।", "(ब) यदि try ब्लॉक में कोई अपवाद है तो else ब्लॉक निष्पादित होता है।", "(स) finally ब्लॉक निष्पादित होता है चाहे अपवाद हो या न हो।", "(द) raise कीवर्ड का उपयोग अपवाद को संभालने के लिए किया जाता है।"], correct: 2, reason: "finally ब्लॉक हमेशा चलता है, चाहे try ब्लॉक में कोई एरर आए या नहीं।" },
+                    { id: 2, q: "टेक्स्ट फ़ाइल को पढ़ने और लिखने के लिए किस मोड का उपयोग किया जाता है, जो फ़ाइल पॉइंटर को शुरुआत में रखता है?", options: ["(अ) r+", "(ब) w+", "(स) a+", "(द) xb"], correct: 0, reason: "r+ मोड फाइल को पढ़ने और लिखने दोनों के लिए खोलता है और फाइल पॉइंटर को फाइल की शुरुआत में रखता है।" },
+                    { id: 3, q: "स्टैक (Stack) में, एक तत्व (element) जोड़ने की क्रिया को क्या कहा जाता है?", options: ["(अ) Pop", "(ब) Enqueue", "(स) Push", "(द) Traverse"], correct: 2, reason: "स्टैक में डेटा डालने की प्रक्रिया को तकनीकी रूप से 'Push' कहा जाता है।" },
+                    { id: 4, q: "Linear Search की worst-case time complexity क्या है?", options: ["(अ) O(1)", "(ब) O(log n)", "(स) O(n)", "(द) O(n^2)"], correct: 2, reason: "रैखिक खोज में हमें हर तत्व की जांच करनी पड़ सकती है, इसलिए जटिलता O(n) है।" },
+                    { id: 5, q: "SQL में कौन सा aggregate function NULL मानों की उपेक्षा करता है?", options: ["(अ) COUNT(*)", "(ब) MAX()", "(स) SUM()", "(द) उपरोक्त सभी (COUNT(*) को छोड़कर)"], correct: 3, reason: "COUNT(*) को छोड़कर सभी एग्रीगेट फ़ंक्शन (SUM, MAX, AVG) NULL को अनदेखा करते हैं।" },
+                    { id: 6, q: "दो असमान नेटवर्क (जैसे LAN को इंटरनेट से) जोड़ने के लिए किस नेटवर्क डिवाइस का उपयोग किया जाता है?", options: ["(अ) Switch", "(ब) Hub", "(स) Gateway", "(द) Repeater"], correct: 2, reason: "गेटवे दो अलग-अलग प्रोटोकॉल वाले नेटवर्क को जोड़ता है।" },
+                    { id: 7, q: "निम्नलिखित में से कौन सा एक मान्य Queue ऑपरेशन नहीं है?", options: ["(अ) Enqueue", "(ब) Dequeue", "(स) Peek", "(द) Push"], correct: 3, reason: "Push एक स्टैक ऑपरेशन है। कतार (Queue) में Enqueue/Dequeue का उपयोग होता है।" },
+                    { id: 8, q: "कंप्यूटर नेटवर्क पर सुरक्षित संचार के लिए किस प्रोटोकॉल का उपयोग किया जाता है?", options: ["(अ) HTTP", "(ब) FTP", "(स) HTTPS", "(द) SMTP"], correct: 2, reason: "HTTPS डेटा को एन्क्रिप्ट करता है।" },
+                    { id: 9, q: "SQL में, पैटर्न मिलान वाइल्डकार्ड % क्या मैच करता है?", options: ["(अ) बिल्कुल एक अक्षर।", "(ब) शून्य या अधिक अक्षर।", "(स) बिल्कुल दो अक्षर।", "(द) केवल संख्यात्मक मान।"], correct: 1, reason: "% वाइल्डकार्ड शून्य, एक या अधिक वर्णों के किसी भी अनुक्रम का प्रतिनिधित्व करता है।" }
+                ],
+                secB: [
+                    { id: 10, q: "एक्सेप्शन हैंडलिंग में __________ ब्लॉक केवल तब निष्पादित होता है जब try ब्लॉक में कोई अपवाद नहीं होता है।", a: "else" },
+                    { id: 11, q: "__________ विधि फ़ाइल ऑब्जेक्ट की वर्तमान स्थिति लौटाती है।", a: "tell()" },
+                    { id: 12, q: "एक कतार (Queue) __________ सिद्धांत पर काम करती है।", a: "FIFO (First-In-First-Out)" },
+                    { id: 13, q: "पायथन में, dump() और load() का उपयोग करके बाइनरी फ़ाइलों के साथ काम करने के लिए __________ मॉड्यूल की आवश्यकता होती है।", a: "pickle" }
+                ],
+                secC: [
+                    { id: 14, q: "पायथन में 'Exception' को परिभाषित करें।", a: "अपवाद (Exception) एक ऐसी घटना है जो प्रोग्राम के निष्पादन के दौरान घटित होती है और निर्देशों के सामान्य प्रवाह को बाधित करती है।" },
+                    { id: 15, q: "f नामक फ़ाइल ऑब्जेक्ट को बंद करने के लिए सिंटैक्स लिखें।", a: "f.close()" },
+                    { id: 16, q: "CSV फ़ाइल में 'delimiter' क्या है?", a: "डेलिमिटर एक वर्ण (जैसे अल्पविराम , या टैब) है जिसका उपयोग टेक्स्ट फ़ाइल में डेटा मानों को अलग करने के लिए किया जाता है।" },
+                    { id: 17, q: "स्टैक के दो प्राथमिक कार्यों के नाम बताइए।", a: "(1) Push (डेटा डालना) और (2) Pop (डेटा निकालना)।" },
+                    { id: 18, q: "pass स्टेटमेंट का उद्देश्य क्या है?", a: "यह एक नल (null) स्टेटमेंट है जिसका उपयोग तब किया जाता है जब सिंटैक्स के लिए किसी स्टेटमेंट की आवश्यकता होती है, लेकिन कोई कोड निष्पादित नहीं करना होता।" },
+                    { id: 19, q: "पढ़ने के लिए 'data.txt' खोलने के लिए एक पायथन स्टेटमेंट लिखें।", a: "f = open(\"data.txt\", \"r\")" },
+                    { id: 20, q: "SQL में किसी संबंध (relation) की डिग्री क्या है?", a: "किसी तालिका (relation) में कॉलम (attributes) की कुल संख्या को उसकी डिग्री कहा जाता है।" },
+                    { id: 21, q: "किन्हीं दो DML कमांड के नाम बताइए।", a: "INSERT, UPDATE (या DELETE)।" }
+                ],
+                secD: [
+                    { id: 22, q: "सिंटैक्स त्रुटियों और रनटाइम त्रुटियों के बीच अंतर स्पष्ट करें।", a: "<strong>सिंटैक्स त्रुटियाँ:</strong> कोड व्याकरण नियमों का उल्लंघन (जैसे कोलन गायब)। निष्पादन से पहले पकड़ी जाती हैं।<br><strong>रनटाइम त्रुटियाँ:</strong> निष्पादन के दौरान अवैध ऑपरेशन (जैसे 5/0)। प्रोग्राम क्रैश हो जाता है।" },
+                    { id: 23, q: "फ़ाइल हैंडलिंग में 'with' स्टेटमेंट का क्या लाभ है?", a: "'with' स्टेटमेंट सुनिश्चित करता है कि ब्लॉक पूरा होने या एरर आने पर फ़ाइल स्वचालित रूप से बंद (close) हो जाए। इससे संसाधन लीक नहीं होते।" },
+                    { id: 24, q: "टेक्स्ट फ़ाइल 'story.txt' को पढ़ने के लिए कोड लिखें।", isCode: true, code: `with open('story.txt', 'r') as f:\n    for line in f:\n        print(line, end='')` },
+                    { id: 25, q: "इन्फिक्स (A + B) * C को पोस्टफिक्स में बदलें।", a: "परिणाम: <strong>AB+C*</strong><br>चरण: (A+B) -> AB+; फिर AB+ * C -> AB+C*" },
+                    { id: 26, q: "रैखिक खोज (Linear) और बाइनरी खोज (Binary) में डेटा पूर्वापेक्षाएँ क्या हैं?", a: "<strong>रैखिक खोज:</strong> डेटा किसी भी क्रम में हो सकता है (Unsorted)।<br><strong>बाइनरी खोज:</strong> डेटा का <strong>सॉर्ट (Sorted)</strong> होना अनिवार्य है।" },
+                    { id: 27, q: "स्टैक में Push फ़ंक्शन लिखें।", isCode: true, code: `def push(Arr, val):\n    Arr.append(val)\n    print("Element pushed")` },
+                    { id: 28, q: "फॉरेन की (Foreign Key) क्या है?", a: "यह एक तालिका का कॉलम है जो किसी दूसरी तालिका की <strong>Primary Key</strong> को संदर्भित करता है, जिससे दो तालिकाओं के बीच संबंध बनता है।" },
+                    { id: 29, q: "औसत अंक के लिए SQL क्वेरी लिखें।", isCode: true, code: "SELECT AVG(Marks) FROM Student;" },
+                    { id: 30, q: "स्टार और बस टोपोलॉजी की तुलना करें।", a: "<strong>स्टार:</strong> केंद्रीय हब होता है। एक केबल फेल होने पर केवल वह नोड प्रभावित होता है।<br><strong>बस:</strong> एक ही बैकबोन केबल होती है। केबल फेल होने पर पूरा नेटवर्क बंद हो जाता है।" },
+                    { id: 31, q: "कंप्यूटर नेटवर्क के लाभ लिखें।", a: "1. संसाधन साझाकरण (प्रिंटर)।<br>2. डेटा साझाकरण (फाइलें)।<br>3. संचार (ईमेल)।<br>4. बैकअप।" },
+                    { id: 32, q: "पिकलिंग और अनपिकलिंग क्या है?", a: "<strong>पिकलिंग:</strong> पायथन ऑब्जेक्ट को बाइट स्ट्रीम में बदलना (फाइल में सहेजने के लिए)।<br><strong>अनपिकलिंग:</strong> बाइट स्ट्रीम को वापस ऑब्जेक्ट में बदलना।" },
+                    { id: 33, q: "फैक्टोरियल (रिकर्शन) का प्रोग्राम लिखें।", isCode: true, code: `def factorial(n):\n    if n == 0 or n == 1: return 1\n    return n * factorial(n - 1)` }
+                ],
+                secE: [
+                    { id: 34, q: "फ़ाइल हैंडलिंग (टेक्स्ट): 'article.txt' को पढ़ने और अपरकेस/लोअरकेस गिनने का प्रोग्राम लिखें।", isCode: true, code: `def count_chars():
+    upper = 0
+    lower = 0
+    digits = 0
+    try:
+        with open("article.txt", "r") as f:
+            content = f.read()
+            for char in content:
+                if char.isupper(): upper += 1
+                elif char.islower(): lower += 1
+                elif char.isdigit(): digits += 1
+        print(f"Upper: {upper}, Lower: {lower}, Digits: {digits}")
+    except FileNotFoundError:
+        print("File not found.")` },
+                    { id: 35, q: "स्टैक कार्यान्वयन: मेनू-संचालित प्रोग्राम लिखें।", isCode: true, code: `stack = []
+while True:
+    print("1.Push 2.Pop 3.Peek 4.Exit")
+    ch = int(input("Choice: "))
+    if ch==1:
+        stack.append(int(input("Enter: ")))
+    elif ch==2:
+        if not stack: print("Underflow")
+        else: print(stack.pop())
+    elif ch==3:
+        if stack: print(stack[-1])
+    elif ch==4: break` },
+                    { id: 36, q: "SQL (Grouping): SALES टेबल (SalesmanID, Product, Quantity, Region) के लिए क्वेरी लिखें।", isCode: true, code: `-- (a) Count salesmen per Region
+SELECT Region, COUNT(SalesmanID) FROM SALES GROUP BY Region;
+
+-- (b) Total Quantity per Product
+SELECT Product, SUM(Quantity) FROM SALES GROUP BY Product;
+
+-- (c) Regions with > 5 salesmen
+SELECT Region, COUNT(SalesmanID) FROM SALES GROUP BY Region HAVING COUNT(SalesmanID) > 5;` }
+                ],
+                secF: [
+                    { id: 37, q: "नेटवर्किंग (केस स्टडी): अल्फा स्कूल (एडमिन, जूनियर, सीनियर, हॉस्टल)।", a: "<strong>(a) टोपोलॉजी: स्टार टोपोलॉजी (Star)</strong><br>कारण: सभी विंग्स को एडमिन (सर्वर) से जोड़ना प्रबंधन में आसान है। एक लिंक फेल होने पर बाकी नेटवर्क सुरक्षित रहता है。<br><br><strong>(b) रिपीटर: एडमिन और हॉस्टल के बीच</strong><br>कारण: दूरी 500 मीटर है। ईथरनेट केबल 100 मीटर से ज्यादा पर सिग्नल खो देती है, इसलिए सिग्नल को regenerate करने के लिए रिपीटर चाहिए।<br><br><strong>प्रोटोकॉल परिभाषाएँ:</strong><br>SMTP: ईमेल भेजना।<br>POP3: ईमेल प्राप्त करना।<br>VoIP: इंटरनेट पर वॉयस कॉल।<br>DNS: डोमेन नाम (URL) को IP पते में बदलना।" },
+                    { id: 38, q: "SQL (DDL और DML): EMPLOYEE टेबल के लिए कमांड लिखें।", isCode: true, code: `-- (a) Create Table
+CREATE TABLE EMPLOYEE (EmpID INT PRIMARY KEY, Name VARCHAR(50), Dept VARCHAR(20), Salary INT);
+
+-- (b) Insert
+INSERT INTO EMPLOYEE VALUES (101, 'Ravi', 'HR', 45000);
+
+-- (c) Update Salary
+UPDATE EMPLOYEE SET Salary = Salary * 1.10 WHERE Dept = 'IT';
+
+-- (d) Delete Records
+DELETE FROM EMPLOYEE WHERE Salary < 5000;
+
+-- (Join Option) Left Join Query
+SELECT C.Name, O.OrderID, O.Amount
+FROM CUSTOMER C
+LEFT JOIN ORDER O ON C.CustID = O.CustID;` }
+                ]
+            }
+        };
+
+        // --- APP LOGIC ---
+
+        let currentTab = 'dashboard';
+        const userAnswers = {}; // To store MCQ states
+
+        function init() {
+            renderNav();
+            renderContent('dashboard');
+        }
+
+        function renderNav() {
+            const navContainer = document.getElementById('nav-container');
+            let html = '';
+            
+            examData.sections.forEach(sec => {
+                const isActive = sec.id === currentTab;
+                const btnClass = isActive 
+                    ? 'bg-white text-brand-700 shadow-md font-bold' 
+                    : 'bg-brand-600 text-blue-100 hover:bg-brand-500 hover:text-white';
+                
+                html += `<button onclick="switchTab('${sec.id}')" class="px-4 py-2 rounded-full text-sm transition-all duration-200 border border-transparent ${btnClass}">
+                    ${sec.title}
+                </button>`;
+            });
+            
+            navContainer.innerHTML = html;
+        }
+
+        function switchTab(tabId) {
+            currentTab = tabId;
+            renderNav();
+            renderContent(tabId);
+        }
+
+        function renderContent(tabId) {
+            const container = document.getElementById('app-content');
+            
+            if (tabId === 'dashboard') {
+                renderDashboard(container);
+            } else {
+                const section = examData.sections.find(s => s.id === tabId);
+                const questions = examData.questions[tabId];
+                renderSection(container, section, questions);
+            }
+        }
+
+        function renderDashboard(container) {
+            container.innerHTML = `
+                <div class="fade-in space-y-8">
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-brand-500">
+                            <div class="text-sm text-slate-500 uppercase tracking-wide">कुल अंक (Total Marks)</div>
+                            <div class="text-4xl font-bold text-slate-800 mt-2">${examData.meta.totalMarks}</div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-emerald-500">
+                            <div class="text-sm text-slate-500 uppercase tracking-wide">कुल प्रश्न (Questions)</div>
+                            <div class="text-4xl font-bold text-slate-800 mt-2">38</div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-purple-500">
+                            <div class="text-sm text-slate-500 uppercase tracking-wide">समय (Time)</div>
+                            <div class="text-4xl font-bold text-slate-800 mt-2">${examData.meta.time}</div>
+                        </div>
+                    </div>
+
+                    <!-- Introduction -->
+                    <div class="bg-white p-8 rounded-xl shadow-sm">
+                        <h1 class="text-2xl font-bold text-slate-800 mb-4">प्री-बोर्ड परीक्षा तैयारी डैशबोर्ड</h1>
+                        <p class="text-slate-600 mb-6">
+                            यह एप्लिकेशन आपको RBSE कक्षा 12 कंप्यूटर विज्ञान प्री-बोर्ड परीक्षा के लिए तैयार करने में मदद करने के लिए डिज़ाइन किया गया है। 
+                            आप विभिन्न अनुभागों के माध्यम से नेविगेट कर सकते हैं, MCQs का अभ्यास कर सकते हैं और कोडिंग समस्याओं के समाधान देख सकते हैं।
+                        </p>
+                        
+                        <!-- Chart -->
+                        <div class="chart-container">
+                            <canvas id="marksChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Initialize Chart
+            setTimeout(() => {
+                const ctx = document.getElementById('marksChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: examData.sections.filter(s => s.id !== 'dashboard').map(s => s.title.split(' ')[0]),
+                        datasets: [{
+                            label: 'अंकों का वितरण (Marks Distribution)',
+                            data: examData.sections.filter(s => s.id !== 'dashboard').map(s => s.marks),
+                            backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#6366f1'],
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            title: { display: true, text: 'Marks per Section' }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, title: { display: true, text: 'अंक' } }
+                        }
+                    }
+                });
+            }, 50);
+        }
+
+        function renderSection(container, section, questions) {
+            let html = `<div class="fade-in max-w-4xl mx-auto">
+                <div class="mb-6 flex justify-between items-end border-b border-slate-200 pb-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">${section.title}</h2>
+                        <p class="text-slate-500 mt-1">${section.qCount} प्रश्न • ${section.marks} अंक</p>
+                    </div>
+                    <div class="text-xs font-mono bg-slate-200 px-2 py-1 rounded text-slate-600">ID: ${section.id}</div>
+                </div>
+                <div class="space-y-4">`;
+
+            if (section.type === 'mcq') {
+                questions.forEach((item, index) => {
+                    html += `
+                        <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-5">
+                            <div class="flex gap-3">
+                                <span class="bg-brand-100 text-brand-700 font-bold px-2 py-1 rounded text-sm h-fit">${item.id}</span>
+                                <div class="w-full">
+                                    <p class="font-medium text-lg mb-4 text-slate-800">${item.q}</p>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        ${item.options.map((opt, i) => `
+                                            <button onclick="checkMCQ('${section.id}', ${index}, ${i})" 
+                                                id="btn-${section.id}-${index}-${i}"
+                                                class="text-left px-4 py-3 rounded-md border border-slate-200 hover:bg-slate-50 transition-colors text-slate-700">
+                                                ${opt}
+                                            </button>
+                                        `).join('')}
+                                    </div>
+                                    <div id="feedback-${section.id}-${index}" class="hidden mt-4 p-3 rounded bg-slate-50 border-l-4 border-emerald-500 text-sm">
+                                        <p class="font-bold text-emerald-700 mb-1">उत्तर: ${item.options[item.correct]}</p>
+                                        <p class="text-slate-600"><strong>कारण:</strong> ${item.reason}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else if (section.type === 'fillups') {
+                questions.forEach((item) => {
+                    html += `
+                        <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                            <div class="flex gap-3 items-start">
+                                <span class="text-slate-400 font-bold text-sm mt-1">${item.id}.</span>
+                                <p class="text-lg text-slate-800 leading-relaxed">${item.q}</p>
+                            </div>
+                            <div class="relative group cursor-pointer shrink-0">
+                                <div class="bg-slate-100 text-slate-400 px-6 py-2 rounded border border-slate-300 select-none group-hover:hidden">उत्तर देखें</div>
+                                <div class="hidden group-hover:block bg-emerald-100 text-emerald-800 px-6 py-2 rounded border border-emerald-300 font-bold fade-in">
+                                    ${item.a}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                // QA, Short, Long, Essay (Accordion Style)
+                questions.forEach((item) => {
+                    const hasCode = item.isCode;
+                    html += `
+                        <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden group">
+                            <div class="p-5 cursor-pointer hover:bg-slate-50 transition-colors flex gap-4" onclick="toggleAccordion(this)">
+                                <span class="bg-slate-100 text-slate-600 font-bold px-2 py-1 rounded text-sm h-fit shrink-0">${item.id}</span>
+                                <div class="w-full">
+                                    <h3 class="font-medium text-lg text-slate-800">${item.q}</h3>
+                                </div>
+                                <span class="text-brand-500 text-xl font-bold transform transition-transform duration-200 chevron">+</span>
+                            </div>
+                            <div class="hidden border-t border-slate-100 bg-slate-50/50 p-5 answer-box">
+                                ${hasCode ? 
+                                    `<div class="relative">
+                                        <div class="absolute top-0 right-0 bg-slate-700 text-slate-300 text-xs px-2 py-1 rounded-bl">Code</div>
+                                        <pre class="bg-slate-800 text-green-400 p-4 rounded-md overflow-x-auto text-sm font-mono shadow-inner border border-slate-700">${item.code}</pre>
+                                     </div>` 
+                                    : 
+                                    `<div class="prose prose-slate max-w-none text-slate-700 leading-relaxed">${item.a}</div>`
+                                }
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            html += `</div></div>`;
+            container.innerHTML = html;
+        }
+
+        // --- INTERACTION LOGIC ---
+
+        function checkMCQ(secId, qIndex, selectedOptIndex) {
+            // Find question data
+            const question = examData.questions[secId][qIndex];
+            const feedbackEl = document.getElementById(`feedback-${secId}-${qIndex}`);
+            const allBtns = document.querySelectorAll(`[id^='btn-${secId}-${qIndex}-']`);
+            
+            // Reset styles
+            allBtns.forEach(btn => {
+                btn.className = "text-left px-4 py-3 rounded-md border border-slate-200 opacity-50 cursor-not-allowed text-slate-700";
+                btn.disabled = true;
+            });
+
+            const selectedBtn = document.getElementById(`btn-${secId}-${qIndex}-${selectedOptIndex}`);
+            
+            if (selectedOptIndex === question.correct) {
+                selectedBtn.classList.remove('border-slate-200', 'opacity-50');
+                selectedBtn.classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-800', 'font-semibold');
+            } else {
+                selectedBtn.classList.remove('border-slate-200', 'opacity-50');
+                selectedBtn.classList.add('bg-red-100', 'border-red-500', 'text-red-800');
+                
+                // Highlight correct one too
+                const correctBtn = document.getElementById(`btn-${secId}-${qIndex}-${question.correct}`);
+                correctBtn.classList.remove('opacity-50');
+                correctBtn.classList.add('bg-emerald-50', 'border-emerald-300', 'text-emerald-700');
+            }
+
+            // Show feedback
+            feedbackEl.classList.remove('hidden');
+            feedbackEl.classList.add('fade-in');
+        }
+
+        function toggleAccordion(header) {
+            const container = header.parentElement;
+            const content = container.querySelector('.answer-box');
+            const chevron = container.querySelector('.chevron');
+
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                content.classList.add('fade-in');
+                chevron.innerText = '−';
+                header.classList.add('bg-slate-50');
+            } else {
+                content.classList.add('hidden');
+                content.classList.remove('fade-in');
+                chevron.innerText = '+';
+                header.classList.remove('bg-slate-50');
+            }
+        }
+
+        // Init App
+        window.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</body>
+</html>
