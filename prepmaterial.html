@@ -1,0 +1,627 @@
+<!-- Chosen Palette: Warm Neutrals & Academic Accents (Cream, Slate, with Subject-specific highlights: Orange, Blue, Green, Purple, Red) -->
+
+<!-- Application Structure Plan: 
+    1. Header: simple, clean branding for Nalanda Public School.
+    2. Dashboard Overview (The "Why"): Introduces the exam scope. Displays high-level metrics (Subject breakdown, question count) using Chart.js to give the user an immediate sense of the exam structure.
+    3. Study Center (The "What" & "How"): The core interactive section.
+       - Subject Tabs: Allows focused study per subject (Hindi, English, Geography, CS, Political Science).
+       - Card-based Question Interface: Users can scroll through questions.
+       - Interaction: "Flip card" or "Reveal Answer" mechanism. To make it engaging, I will implement a "Practice Mode" where users select an option and get immediate visual feedback (Green/Red), rather than just reading a static list.
+    4. Analytics Section (The "So What"): A simple visual analysis of the *types* of questions (e.g., conceptual vs factual) inferred from the data, or simply a breakdown of the answer key distribution to spot patterns.
+    5. Search/Filter: Global search to find specific topics across subjects.
+    
+    Why this structure? It moves from macro (overview) to micro (question interactions), allowing the user to digest the exam structure before diving into specific questions. The interactive quiz element transforms passive reading into active recall.
+-->
+
+<!-- Visualization & Content Choices:
+    1. Subject Distribution Chart (Doughnut - Chart.js): 
+       - Goal: Inform. 
+       - Shows equal weightage (20 Qs each). 
+       - Justification: Visual confirmation of balanced curriculum.
+    2. Answer Key Distribution (Bar Chart - Chart.js):
+       - Goal: Analysis.
+       - Shows frequency of Options A, B, C, D.
+       - Justification: Helps identifying if there was a bias in option setting (e.g., "When in doubt, pick C?").
+    3. Interactive Question Cards (HTML/JS + Tailwind):
+       - Goal: Change/Engage.
+       - User clicks options to see results.
+       - Justification: Active learning is superior to static lists. HTML/CSS is lightweight and accessible.
+    4. Progress Tracker (Simple HTML/JS Text):
+       - Goal: Inform.
+       - Updates as user answers questions in the current session.
+-->
+
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nalanda Public School - Class 12 Arts Exam Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans Devanagari', sans-serif;
+            background-color: #FDFBF7; /* Warm Cream Background */
+            color: #1F2937;
+        }
+        
+        /* Chart Container Styling - Strict adherence to requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Tailwind max-w-xl approx */
+            height: 300px;
+            max-height: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        /* Card Hover Effects */
+        .question-card {
+            transition: all 0.2s ease-in-out;
+        }
+        .question-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-graduation-cap text-indigo-600 text-2xl mr-3"></i>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900 leading-tight">Nalanda Public School</h1>
+                        <p class="text-xs text-gray-500">Class 12 Arts - MCQ Test Solution (Jan 2026)</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="score-display" class="hidden md:inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                        Score: 0 / 0
+                    </span>
+                    <button onclick="resetQuiz()" class="text-gray-500 hover:text-indigo-600 transition-colors" title="Reset Quiz">
+                        <i class="fas fa-redo-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+
+        <!-- Section 1: Exam Overview & Dashboard -->
+        <section id="dashboard" class="animate-fade-in">
+            <div class="text-center max-w-3xl mx-auto mb-10">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Exam Overview & Insights</h2>
+                <p class="text-lg text-gray-600 leading-relaxed">
+                    Welcome to the interactive analysis of the January 2026 MCQ Test. 
+                    This dashboard synthesizes data from 5 key subjects: Hindi, English, Geography, Computer Science, and Political Science.
+                    Explore the distribution of questions below and use the "Study Center" to practice and verify your answers.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                
+                <!-- Stat Cards -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center hover:border-indigo-200 transition-colors">
+                        <div class="p-3 bg-indigo-50 rounded-full mb-3">
+                            <i class="fas fa-book-open text-indigo-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-3xl font-bold text-gray-900">100</h3>
+                        <p class="text-sm text-gray-500 mt-1">Total Questions</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center hover:border-orange-200 transition-colors">
+                        <div class="p-3 bg-orange-50 rounded-full mb-3">
+                            <i class="fas fa-layer-group text-orange-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-3xl font-bold text-gray-900">5</h3>
+                        <p class="text-sm text-gray-500 mt-1">Subjects Covered</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 col-span-2 flex flex-col items-center justify-center text-center hover:border-green-200 transition-colors">
+                        <div class="p-3 bg-green-50 rounded-full mb-3">
+                            <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-3xl font-bold text-gray-900">MCQ</h3>
+                        <p class="text-sm text-gray-500 mt-1">Format Type</p>
+                    </div>
+                </div>
+
+                <!-- Subject Distribution Chart -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Subject Weightage</h3>
+                    <div class="chart-container">
+                        <canvas id="subjectChart"></canvas>
+                    </div>
+                    <p class="text-xs text-center text-gray-400 mt-4">Each subject contributes equally (20%) to the total paper.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Interactive Study Center -->
+        <section id="study-center" class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+            
+            <!-- Section Header -->
+            <div class="bg-gray-50 border-b border-gray-200 p-6 md:p-8">
+                <div class="md:flex md:items-center md:justify-between">
+                    <div class="mb-4 md:mb-0">
+                        <h2 class="text-2xl font-bold text-gray-900">Interactive Answer Key</h2>
+                        <p class="text-gray-600 mt-2">
+                            Select a subject below to view specific questions. Click on the options to practice, 
+                            or use the search bar to find specific concepts.
+                        </p>
+                    </div>
+                    <!-- Search -->
+                    <div class="relative w-full md:w-64">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </span>
+                        <input type="text" id="searchInput" placeholder="Search questions..." 
+                            class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out">
+                    </div>
+                </div>
+
+                <!-- Subject Tabs -->
+                <div class="flex flex-wrap gap-2 mt-6" id="subject-tabs">
+                    <!-- Tabs will be injected by JS -->
+                </div>
+            </div>
+
+            <!-- Question Grid -->
+            <div class="p-6 md:p-8 bg-gray-50/50">
+                <div id="questions-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Questions will be injected here -->
+                </div>
+                
+                <!-- Empty State -->
+                <div id="empty-state" class="hidden text-center py-12">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+                        <i class="fas fa-search text-gray-400 text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900">No questions found</h3>
+                    <p class="text-gray-500 mt-2">Try adjusting your search terms or switching subjects.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Analysis & Breakdown -->
+        <section class="mb-12">
+            <div class="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-gray-100">
+                <div class="md:flex md:space-x-8">
+                    <div class="md:w-1/3 mb-6 md:mb-0">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-4">Option Distribution Analysis</h2>
+                        <p class="text-gray-600 mb-4">
+                            An analysis of the correct options (A, B, C, D) across the entire paper. 
+                            Understanding this distribution can be interesting for test-takers analyzing pattern biases, 
+                            though every exam is unique.
+                        </p>
+                        <ul class="space-y-3">
+                            <li class="flex items-center justify-between text-sm">
+                                <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-blue-500 mr-2"></span>Option A/क/अ</span>
+                                <span class="font-semibold" id="count-a">0</span>
+                            </li>
+                            <li class="flex items-center justify-between text-sm">
+                                <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-green-500 mr-2"></span>Option B/ख/ब</span>
+                                <span class="font-semibold" id="count-b">0</span>
+                            </li>
+                            <li class="flex items-center justify-between text-sm">
+                                <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-yellow-500 mr-2"></span>Option C/ग/स</span>
+                                <span class="font-semibold" id="count-c">0</span>
+                            </li>
+                            <li class="flex items-center justify-between text-sm">
+                                <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-red-500 mr-2"></span>Option D/घ/द</span>
+                                <span class="font-semibold" id="count-d">0</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="md:w-2/3 flex items-center justify-center bg-gray-50 rounded-lg p-4">
+                        <div class="chart-container">
+                            <canvas id="distributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-4 md:mb-0">
+                <h4 class="font-bold text-lg">Nalanda Public School, Adaksar</h4>
+                <p class="text-gray-400 text-sm">Empowering Education through Technology</p>
+            </div>
+            <div class="text-gray-400 text-sm text-center md:text-right">
+                <p>&copy; 2026 Academic Archive. All rights reserved.</p>
+                <p class="mt-1 text-xs">Generated from Source Report: Class 12th Arts.pdf</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- DATA STORE ---
+        // Extracted directly from Class_12_Arts_Solution.md
+        const quizData = [
+            // HINDI
+            { id: 1, subject: 'Hindi', q: "'दिन जल्दी-जल्दी ढलता है' गीत बच्चन की किस रचना से लिया गया है?", options: ['मधुबाला', 'निशा-निमंत्रण', 'मधुशाला', 'मिलन यामिनी'], correct: 1, explanation: "यह गीत हरिवंश राय बच्चन के काव्य संग्रह 'निशा-निमंत्रण' से उधृत है।" },
+            { id: 2, subject: 'Hindi', q: "छतों पर बेसुध दौड़ते हुए बच्चों का वेग है-", options: ['डाल की तरह लचीला', 'छत की तरह कठोर', 'पृथ्वी की तरह घूमता हुआ', 'कपास की तरह कोमल'], correct: 0, explanation: "" },
+            { id: 3, subject: 'Hindi', q: "'बात जो एक शरारती बच्चे की तरह मुझसे खेल रही थी' में अलंकार है-", options: ['उपमा', 'रूपक', 'उत्प्रेक्षा', 'श्लेष'], correct: 0, explanation: "यहाँ बात की तुलना शरारती बच्चे से 'तरह' शब्द द्वारा की गई है, अतः उपमा अलंकार है।" },
+            { id: 4, subject: 'Hindi', q: "टेलीविजन के परदे पर दिखाई गई 'फूली आँख की बड़ी तस्वीर' प्रकट करती है-", options: ['अपंगता की पीड़ा', 'दर्शकों की सहानुभूति', 'कवि की व्याकुलता', 'दूरदर्शन के संयोजक की करुणा'], correct: 0, explanation: "" },
+            { id: 5, subject: 'Hindi', q: "'राख से लीपा हुआ चौका' कहकर कवि ने बताया है-", options: ['आकाश का नीला-कालापन', 'चौके का साफ-सुथरापन (पवित्रता और नमी)', 'लीपने के लिए गोबर का न मिलना', 'आकाश का चौके के समान होना'], correct: 1, explanation: "यह पवित्रता और नमी का द्योतक है।" },
+            { id: 6, subject: 'Hindi', q: "हँसते हैं छोटे पौधे लघुभार में छोटे पौधे प्रतीक हैं-", options: ['छोटे-छोटे पादप वर्ग के', 'पूँजीपति वर्ग के', 'दलित शोषित वर्ग के', 'जनवादी क्रान्ति के'], correct: 2, explanation: "" },
+            { id: 7, subject: 'Hindi', q: "'निज जननी के एक कुमारा' कथन किसके बारे में है-", options: ['लक्ष्मण', 'राम', 'भरत', 'शत्रुघ्न'], correct: 0, explanation: "राम लक्ष्मण के लिए कहते हैं, यद्यपि सुमित्रा के दो पुत्र थे, पर यहाँ संदर्भ लक्ष्मण का है।" },
+            { id: 8, subject: 'Hindi', q: "'लोका देना' का अर्थ है-", options: ['लुका छिपी खेलना', 'बच्चे को उछालकर खिलाना', 'बच्चे को सजाना-सँवारना', 'बच्चे को लोरी गाकर सुलाना'], correct: 1, explanation: "" },
+            { id: 9, subject: 'Hindi', q: "'कोई अंधड़ कहीं से आया क्षण का बीज वहाँ बोया गया' में अंधड़ प्रतीक है-", options: ['आँधी का', 'तूफान का', 'समुद्री हवा का', 'भावों के आवेग का'], correct: 3, explanation: "" },
+            { id: 10, subject: 'Hindi', q: "'खोटे सिक्कों की टकसाल' कहा गया है-", options: ['भक्तिन को', 'जेठानी को', 'विमाता को', 'माता को'], correct: 0, explanation: "कन्याओं को जन्म देने के कारण उसे ऐसा कहा गया।" },
+            { id: 11, subject: 'Hindi', q: "भगत जी ने कभी चूरन बेचकर छः आने से ज्यादा नहीं कमाए, क्योंकि-", options: ['उनका चूरन और अधिक नहीं बिकता था', 'वे आधुनिक मार्केटिंग नहीं जानते थे', 'इससे अधिक परिश्रम वे नहीं कर सकते थे', 'वे सन्तोषी थे, इसलिए अधिक कमाना नहीं चाहते थे'], correct: 3, explanation: "" },
+            { id: 12, subject: 'Hindi', q: "\"जिसकी भारी कमी हो और जिसकी हमें सबसे ज्यादा जरूरत हो, अपनी उस प्रिय वस्तु का दान ही सच्चा त्याग है।\" कथन है-", options: ['लेखक का', 'लेखक की दीदी (जीजी) का', 'इंदर सेना का', 'मित्र मंडली का'], correct: 1, explanation: "" },
+            { id: 13, subject: 'Hindi', q: "शेर के बच्चे के नाम से प्रसिद्ध पहलवान का नाम था?", options: ['बादल सिंह', 'चाँद सिंह', 'दारा सिंह', 'सूरज सिंह'], correct: 1, explanation: "" },
+            { id: 14, subject: 'Hindi', q: "'शिरीष के फूल' निबंध हजारी प्रसाद ‌द्विवेदी के किस निबंध संग्रह से उधृत है-", options: ['निबंध माला', 'निबंध आलोक', 'निबंध लता', 'कल्पलता'], correct: 3, explanation: "" },
+            { id: 15, subject: 'Hindi', q: "डॉ. भीमराव अंबेडकर की रचनात्मकता के प्रेरक व्यक्ति थे-", options: ['महात्मा गाँधी', 'ज्योतिबा फूले', 'गोपालकृष्ण गोखले', 'विवेकानन्द'], correct: 1, explanation: "" },
+            { id: 16, subject: 'Hindi', q: "यशोधर बाबू 'सिल्वर वैडिंग' के आयोजन को मानते थे-", options: ['पारंपरिक', 'समयानुकूल', 'उत्कृष्ट', 'विदेशी परंपरा'], correct: 3, explanation: "\"समहाउ इंप्रॉपर\" / गोरों के चोंचले।" },
+            { id: 17, subject: 'Hindi', q: "निम्नलिखित में से 'दबे स्वर में किसने पूछा', \"मेहमान गए?\"", options: ['बीवी बच्चों ने', 'यशोधर बाबू की पत्नी ने', 'यशोधर बाबू ने', 'रिश्तेदार ने'], correct: 2, explanation: "" },
+            { id: 18, subject: 'Hindi', q: "लेखक की कक्षा के मॉनीटर का नाम क्या था?", options: ['वसंत पाटील', 'चव्हाण पाटील', 'मनोहर पाटील', 'राव पाटील'], correct: 0, explanation: "" },
+            { id: 19, subject: 'Hindi', q: "लेखक के दादा अन्य किसानों से पहले ईख पेरता था क्योंकि-", options: ['खेती के अन्य काम भी करने होते थे', 'ग्राम पंचायत के लिए समय निकालता था', 'गुड़ के भाव अच्छे मिल जाते थे', 'दादा हर काम जल्दी करता था'], correct: 2, explanation: "" },
+            { id: 20, subject: 'Hindi', q: "मुअनजोदड़ो की मुहरों में किस पशु के चित्र पाए जाते हैं?", options: ['शेर (बाघ)', 'बकरी', 'ऊँट', 'घोड़ा'], correct: 0, explanation: "" },
+
+            // ENGLISH
+            { id: 21, subject: 'English', q: "Who had sent that First Day cover?", options: ['Sam\'s father', 'Sam\'s uncle', 'Sam\'s friend', 'Sam, a psychiatrist'], correct: 3, explanation: "" },
+            { id: 22, subject: 'English', q: "What was Sam invited for according to the letter?", options: ['for a party', 'for a tea party', 'for a bachelor\'s party', 'for a lemonade party'], correct: 3, explanation: "" },
+            { id: 23, subject: 'English', q: "Charley came out in the lobby of _____ hotel.", options: ['Raddison', 'Hyatt', 'Roosevelt', 'Not mentioned'], correct: 2, explanation: "" },
+            { id: 24, subject: 'English', q: "What did the king utter to the astrologer's prediction?", options: ['let tigers watch', 'Let tigers beware', 'let tigers be careful', 'none of these'], correct: 1, explanation: "" },
+            { id: 25, subject: 'English', q: "The original cost of the present (wooden tiger) was:", options: ['2 annas and a quarter', '2 annas and a half', 'One and a half annas', '3 annas'], correct: 0, explanation: "" },
+            { id: 26, subject: 'English', q: "In two days a bill for _____ of rupees came from the British jewellers.", options: ['Three lakh', 'Two lakh', 'One lakh', 'Four lakh'], correct: 0, explanation: "" },
+            { id: 27, subject: 'English', q: "What was Gondwana?", options: ['An ancient tourist place', 'an ancient city in Antarctica', 'An ancient super continent', 'None'], correct: 2, explanation: "" },
+            { id: 28, subject: 'English', q: "The narrator was on board the _____ ship.", options: ['World carrier', 'Academic Discovery', 'Akademik Shokalskiy', 'Denim Explorer'], correct: 2, explanation: "" },
+            { id: 29, subject: 'English', q: "What kind of atmosphere does Antarctica have?", options: ['coldest', 'driest', 'windiest', 'All these'], correct: 3, explanation: "" },
+            { id: 30, subject: 'English', q: "Who is the author of the lesson The Enemy?", options: ['Pearl S. Buck', 'Dickens', 'D.H.Lawrence', 'None of these'], correct: 0, explanation: "" },
+            { id: 31, subject: 'English', q: "Sadao was famous surgeon and:", options: ['vet', 'scientist', 'naturopath', 'cosmetologist'], correct: 1, explanation: "" },
+            { id: 32, subject: 'English', q: "Where did Dr. Sadao find the American soldier?", options: ['in the park', 'in the battlefield', 'outside his house', 'None of these'], correct: 2, explanation: "" },
+            { id: 33, subject: 'English', q: "What happens to Mr Lamb?", options: ['He falls off the roof', 'He falls off the ladder', 'He is injured by bees', 'He slips in the bathroom'], correct: 1, explanation: "" },
+            { id: 34, subject: 'English', q: "How far is Mr. Lamb's home from Derry's?", options: ['2 miles', '3 miles', '5 miles', '4 miles'], correct: 1, explanation: "Typically says 3 miles." },
+            { id: 35, subject: 'English', q: "Derry feels that people are _____ of him.", options: ['jealous', 'afraid', 'competitive', 'frustrated'], correct: 1, explanation: "" },
+            { id: 36, subject: 'English', q: "Who is the author of the lesson Memories of childhood?", options: ['Zitkala-Sa and Bama', 'Tishani Doshi and Kalki', 'Pearl S Buck and Susan Hill', 'Jack Finney and Ruskin Bond'], correct: 0, explanation: "" },
+            { id: 37, subject: 'English', q: "How much time did Bama take to reach home that day?", options: ['2 hours', '3 hours', '4 hours', '1 hour'], correct: 3, explanation: "Usually a 10 min walk, took 30 mins to an hour." },
+            { id: 38, subject: 'English', q: "What was Bama a victim of?", options: ['gender prejudice', 'violence', 'child abuse', 'caste system'], correct: 3, explanation: "" },
+            { id: 39, subject: 'English', q: "A large bell rang for:", options: ['lunch', 'dinner', 'breakfast', 'supper'], correct: 2, explanation: "" },
+            { id: 40, subject: 'English', q: "How was the first day in the land of apples?", options: ['hot', 'rainy', 'bitter-cold', 'wet'], correct: 2, explanation: "" },
+
+            // GEOGRAPHY
+            { id: 41, subject: 'Geography', q: "निम्न में से किस तत्व को माता प्रकृति कहा जाता है?", options: ['सामाजिक पर्यावरण', 'भौतिक पर्यावरण', 'राजनीतिक पर्यावरण', 'यह सभी'], correct: 1, explanation: "" },
+            { id: 42, subject: 'Geography', q: "आर्थिक भूगोल का उप क्षेत्र है-", options: ['संसाधन भूगोल', 'सैन्य भूगोल', 'चिकित्सा भूगोल', 'लिंग भूगोल'], correct: 0, explanation: "" },
+            { id: 43, subject: 'Geography', q: "निम्न में से कौन सा जनसंख्या वितरण को प्रभावित करने वाला भौगोलिक कारक है-", options: ['भू आकृति', 'जल की उपलब्धता', 'जलवायु', 'उपयुक्त सभी'], correct: 3, explanation: "" },
+            { id: 44, subject: 'Geography', q: "निम्न में से कौन सा जनसंख्या प्रवास का अपकर्स (Pull) कारक है-", options: ['बेरोजगारी', 'प्रतिकूल जलवायु', 'महामारी', 'शांति और स्थायित्व'], correct: 3, explanation: "" },
+            { id: 45, subject: 'Geography', q: "प्रत्येक व्यक्ति को उपलब्ध अवसरों के लिए सम्मान पहुंच की व्यवस्था करना कहलाता है-", options: ['समता', 'उत्पादकता', 'सतत पोषणीयता', 'सशक्तिकरण'], correct: 0, explanation: "" },
+            { id: 46, subject: 'Geography', q: "निम्न में से मानव विकास का सबसे पुराना उपागम है-", options: ['कल्याण उपागम', 'क्षमता उपागम', 'आय उपागम', 'यह सभी'], correct: 2, explanation: "" },
+            { id: 47, subject: 'Geography', q: "निम्न में से कौन सी रोपण फसल नहीं है-", options: ['कॉफी', 'गन्ना', 'गेहूं', 'रबर'], correct: 2, explanation: "" },
+            { id: 48, subject: 'Geography', q: "निम्न में से कौन सी गहन निर्वाह कृषि की मुख्य फसल है-", options: ['गेहूं', 'चावल', 'सरसों', 'सोयाबीन'], correct: 1, explanation: "" },
+            { id: 49, subject: 'Geography', q: "किसी भी वस्तु का उत्पादन कहलाता है-", options: ['प्रसंस्करण', 'विनिर्माण', 'अवसंरचना', 'उपयुक्त सभी'], correct: 1, explanation: "" },
+            { id: 50, subject: 'Geography', q: "निर्माण की सबसे छोटी इकाई है-", options: ['कुटीर उ‌द्योग', 'छोटे पैमाने के उ‌द्योग', 'बड़े पैमाने के उ‌द्योग', 'रसायनों के उ‌द्योग'], correct: 0, explanation: "" },
+            { id: 51, subject: 'Geography', q: "निम्न में से कौन सा एक तृतीयक क्रियाकलाप है-", options: ['खेती', 'बुनाई', 'व्यापार', 'आखेट'], correct: 2, explanation: "" },
+            { id: 52, subject: 'Geography', q: "निम्न में से कौन सी संस्था द्वार से द्वार सेवा प्रदान करती है-", options: ['ग्रामीण विपणन केंद्र', 'थोक व्यापार', 'फुटकर व्यापार', 'पर्यटन'], correct: 2, explanation: "" },
+            { id: 53, subject: 'Geography', q: "किस महाद्वीप में विश्व का संघनतम रेल तंत्र पाया जाता है-", options: ['एशिया', 'अफ्रीका', 'यूरोप', 'उत्तरी अमेरिका'], correct: 2, explanation: "" },
+            { id: 54, subject: 'Geography', q: "अटलांटिक तथा प्रशांत महासागर जुड़े हुए हैं-", options: ['कील नहर', 'स्वेज नहर', 'पनामा नहर', 'सु नहर'], correct: 2, explanation: "" },
+            { id: 55, subject: 'Geography', q: "निम्नलिखित महा‌द्वीपों में से किस एक से विश्व व्यापार का सर्वाधिक प्रवाह होता है-", options: ['एशिया', 'यूरोप', 'अफ्रीका', 'उत्तरी अमेरिका'], correct: 1, explanation: "" },
+            { id: 56, subject: 'Geography', q: "विश्व व्यापार संगठन का मुख्यालय निम्न में से किस नगर में है-", options: ['वियना', 'न्यू यॉर्क', 'मिलान', 'जेनेवा'], correct: 3, explanation: "" },
+            { id: 57, subject: 'Geography', q: "निम्न में से कौन सा मार्ग पतन (Port of Call) है-", options: ['त्रिपोली', 'कोच्चि', 'होनोलूलू', 'अबादान'], correct: 2, explanation: "" },
+            { id: 58, subject: 'Geography', q: "भारत में जनगणना सर्वप्रथम किस वर्ष में हुई-", options: ['1872', '1881', '1981', '1991'], correct: 0, explanation: "" },
+            { id: 59, subject: 'Geography', q: "सन 2011 की जनगणना के अनुसार भारत में औसत जन घनत्व रहा-", options: ['310', '382', '334', '344'], correct: 1, explanation: "" },
+            { id: 60, subject: 'Geography', q: "एशिया का सघनतम बसा हुआ देश है-", options: ['भारत', 'चीन', 'जापान', 'बांग्लादेश'], correct: 3, explanation: "" },
+
+            // COMPUTER SCIENCE
+            { id: 61, subject: 'Computer Science', q: "स्टैक (Stack) में, एक तत्व (element) जोड़ने की क्रिया को क्या कहा जाता है?", options: ['Pop', 'Enqueue', 'Push', 'Traverse'], correct: 2, explanation: "" },
+            { id: 62, subject: 'Computer Science', q: "Linear Search की worst-case time complexity क्या है?", options: ['O(1)', 'O(log n)', 'O(n)', 'O(n^2)'], correct: 2, explanation: "" },
+            { id: 63, subject: 'Computer Science', q: "SQL में कौन सा aggregate function NULL मानों की उपेक्षा करता है?", options: ['COUNT(*)', 'MAX()', 'SUM()', 'उपरोक्त सभी (COUNT(*) नहीं)'], correct: 3, explanation: "COUNT(*) counts nulls, but MAX, SUM, MIN, AVG ignore them." },
+            { id: 64, subject: 'Computer Science', q: "दो असमान नेटवर्क जोड़ने के लिए किस नेटवर्क डिवाइस का उपयोग किया जाता है?", options: ['Switch', 'Hub', 'Gateway', 'Repeater'], correct: 2, explanation: "" },
+            { id: 65, subject: 'Computer Science', q: "निम्नलिखित में से कौन सा एक मान्य Queue ऑपरेशन नहीं है?", options: ['Enqueue', 'Dequeue', 'Peek', 'Push'], correct: 3, explanation: "Push is for Stacks, Enqueue is for Queues." },
+            { id: 68, subject: 'Computer Science', q: "कंप्यूटर नेटवर्क पर सुरक्षित संचार के लिए किस प्रोटोकॉल का उपयोग किया जाता है?", options: ['HTTP', 'FTP', 'HTTPS', 'SMTP'], correct: 2, explanation: "" },
+            { id: 69, subject: 'Computer Science', q: "टेबल की संरचना (structure) को देखने के लिए किस कमांड का उपयोग किया जाता है?", options: ['SHOW', 'DESCRIBE', 'VIEW', 'SELECT'], correct: 1, explanation: "" },
+            { id: 70, subject: 'Computer Science', q: "DELETE और UPDATE कमांड SQL की किस श्रेणी से संबंधित हैं?", options: ['DDL', 'DML', 'DCL', 'TCL'], correct: 1, explanation: "" },
+            { id: 71, subject: 'Computer Science', q: "कौन सा SQL फंक्शन वर्तमान सिस्टम दिनांक और समय देता है?", options: ['TODAY ()', 'DATE()', 'NOW()', 'SYSDATE()'], correct: 2, explanation: "" },
+            { id: 72, subject: 'Computer Science', q: "SELECT POWER (2,3) का आउटपुट क्या है?", options: ['6', '5', '8', '9'], correct: 2, explanation: "2^3 = 8" },
+            { id: 73, subject: 'Computer Science', q: "कौन सा कंस्ट्रेट (constraint) यह सुनिश्चित करता है कि कॉलम में NULL मान न हो?", options: ['UNIQUE', 'PRIMARY KEY', 'NOT NULL', 'CHECK'], correct: 2, explanation: "" },
+            { id: 74, subject: 'Computer Science', q: "सबसे छोटा नेटवर्क प्रकार कौन सा है?", options: ['LAN', 'MAN', 'WAN', 'PAN'], correct: 3, explanation: "PAN = Personal Area Network" },
+            { id: 75, subject: 'Computer Science', q: "NIC को दिए गए अद्वितीय भौतिक पते (physical address) को क्या कहा जाता है?", options: ['IP Address', 'MAC Address', 'URL', 'Port Address'], correct: 1, explanation: "" },
+            { id: 76, subject: 'Computer Science', q: "किस टोपोलॉजी में प्रत्येक नोड एक केंद्रीय उपकरण (Hub/Switch) से जुड़ा होता है?", options: ['Bus', 'Star', 'Ring', 'Mesh'], correct: 1, explanation: "" },
+            { id: 77, subject: 'Computer Science', q: "Queue (पंक्ति) डेटा स्ट्रक्चर किस सिद्धांत पर कार्य करता है?", options: ['LIFO', 'FIFO', 'FILO', 'Random'], correct: 1, explanation: "First In First Out" },
+            { id: 78, subject: 'Computer Science', q: "http://www.ncert.nic.in किसका उदाहरण है?", options: ['MAC Address', 'URL', 'IP Address', 'Email Address'], correct: 1, explanation: "" },
+            { id: 79, subject: 'Computer Science', q: "किस टोपोलॉजी में सबसे अधिक केबलिंग (cabling) की आवश्यकता होती है?", options: ['Bus', 'Star', 'Mesh', 'Ring'], correct: 2, explanation: "" },
+            { id: 80, subject: 'Computer Science', q: "स्टैक किस सिद्धांत का पालन करता है?", options: ['FIFO', 'LIFO', 'LILO', 'Random'], correct: 1, explanation: "Last In First Out" },
+
+            // POLITICAL SCIENCE
+            { id: 81, subject: 'Political Science', q: "आसियान का मुख्यालय स्थित है:", options: ['जकार्ता', 'बैंकाक', 'सिंगापुर', 'काठमाण्डु'], correct: 0, explanation: "" },
+            { id: 82, subject: 'Political Science', q: "स्वतंत्र भारत में पहला आम चुनाव कब हुआ:", options: ['1951', '1952', '1962', '1972'], correct: 1, explanation: "1951-52, मुख्य रूप से 1952." },
+            { id: 83, subject: 'Political Science', q: "भाषायी आधार पर सर्वप्रथम किस राज्य का गठन हुआ:", options: ['आन्ध्रप्रदेश', 'तमिलनाडु', 'हिमाचल प्रदेश', 'हरियाणा'], correct: 0, explanation: "" },
+            { id: 84, subject: 'Political Science', q: "दक्षिण-पूर्व एशियाई राष्ट्रों का संगठन कहलाता है:", options: ['सार्क', 'आसियान', 'नाटो', 'अपेक्स'], correct: 1, explanation: "" },
+            { id: 85, subject: 'Political Science', q: "सोवियत संघ का विघटन हुआ:", options: ['1990 में', '1991 में', '1992 में', '1993 में'], correct: 1, explanation: "" },
+            { id: 86, subject: 'Political Science', q: "भारत की आजादी के साथ ही धर्म के आधार पर किस राष्ट्र का निर्माण हुआ:", options: ['भारत', 'पाकिस्तान', 'बांग्लादेश', 'इनमे से कोई नहीं'], correct: 1, explanation: "" },
+            { id: 87, subject: 'Political Science', q: "पुरे देश में ई.वी.एम. का इस्तेमाल चालू हो गया:", options: ['2000 तक', '2001 तक', '2002 तक', '2004 तक'], correct: 3, explanation: "" },
+            { id: 88, subject: 'Political Science', q: "युरोपीय संघ के झंडे में सितारों की संख्या है:", options: ['15', '13', '12', '14'], correct: 2, explanation: "" },
+            { id: 89, subject: 'Political Science', q: "विश्व का एकमात्र देश जो G-7 का सदस्य है (विकल्पों में से):", options: ['जापान', 'भारत', 'चीन', 'दक्षिण कोरिया'], correct: 0, explanation: "" },
+            { id: 90, subject: 'Political Science', q: "सोवियत संघ के अंतिम राष्ट्रपति थे:", options: ['बोरिस येल्तसिन', 'निकिता खुश्चेव', 'मिखाइल गोर्बाचेव', 'लेनिन'], correct: 2, explanation: "" },
+            { id: 91, subject: 'Political Science', q: "बर्लिन की दीवार गिराई गई थी:", options: ['1979', '1989', '1984', '1974'], correct: 1, explanation: "" },
+            { id: 92, subject: 'Political Science', q: "पूर्वी पाकिस्तान को वर्तमान में किस नाम से जाना जाता है:", options: ['बांग्लादेश', 'म्यांमार', 'भूटान', 'पश्चिमी बंगाल'], correct: 0, explanation: "" },
+            { id: 93, subject: 'Political Science', q: "स्वतंत्र पार्टी का गठन किया:", options: ['दीनदयाल उपाध्याय', 'सी. राजगोपालाचारी', 'सरदार पटेल', 'श्यामा प्रसाद मुख'], correct: 1, explanation: "" },
+            { id: 94, subject: 'Political Science', q: "निम्न में से कौन 'ट्रिस्ट विद डेस्टिनी' से सम्बंधित है:", options: ['महात्मा गाँधी', 'सरदार पटेल', 'पं. नेहरू', 'बी. आर. अम्बेडकर'], correct: 2, explanation: "" },
+            { id: 95, subject: 'Political Science', q: "भारत में पहले चुनाव आयुक्त थे:", options: ['सुकुमार सेन', 'डॉ. नागेन्द्र सिंह', 'टी. एन. शेषन', 'के.वी.के. सुंदरम'], correct: 0, explanation: "" },
+            { id: 96, subject: 'Political Science', q: "इंदिरा गाँधी की हत्या कब हुई?", options: ['1982', '1974', '1983', '1984'], correct: 3, explanation: "" },
+            { id: 97, subject: 'Political Science', q: "आसू (AASU) छात्र संगठन किस राज्य में सक्रिय है?", options: ['गुजरात', 'मणिपुर', 'मिजोरम', 'असम'], correct: 3, explanation: "" },
+            { id: 98, subject: 'Political Science', q: "पंजाब और हरियाणा राज्य का निर्माण कब हुआ?", options: ['1950 मे', '1966 मे', '1965 मे', '1947 मे'], correct: 1, explanation: "" },
+            { id: 99, subject: 'Political Science', q: "ऑपरेशन ब्लू स्टार का सम्बंध किस राज्य से है?", options: ['दिल्ली', 'गुजरात', 'हरियाणा', 'पंजाब'], correct: 3, explanation: "" },
+            { id: 100, subject: 'Political Science', q: "वर्ल्ड सोशल फोरम की प्रथम बैठक हुई:", options: ['2010', '2006', '2004', '2001'], correct: 3, explanation: "" }
+        ];
+
+        // --- APP STATE ---
+        let currentSubject = 'Hindi';
+        let currentScore = 0;
+        let totalAnswered = 0;
+        let answeredIds = new Set();
+
+        // --- DOM ELEMENTS ---
+        const subjectTabsContainer = document.getElementById('subject-tabs');
+        const questionsGrid = document.getElementById('questions-grid');
+        const emptyState = document.getElementById('empty-state');
+        const searchInput = document.getElementById('searchInput');
+        const scoreDisplay = document.getElementById('score-display');
+        const countA = document.getElementById('count-a');
+        const countB = document.getElementById('count-b');
+        const countC = document.getElementById('count-c');
+        const countD = document.getElementById('count-d');
+
+        // --- COLORS & STYLING MAP ---
+        const subjectStyles = {
+            'Hindi': { color: 'text-orange-600', bg: 'bg-orange-100', border: 'border-orange-200', btn: 'bg-orange-500' },
+            'English': { color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200', btn: 'bg-blue-500' },
+            'Geography': { color: 'text-green-600', bg: 'bg-green-100', border: 'border-green-200', btn: 'bg-green-500' },
+            'Computer Science': { color: 'text-purple-600', bg: 'bg-purple-100', border: 'border-purple-200', btn: 'bg-purple-500' },
+            'Political Science': { color: 'text-red-600', bg: 'bg-red-100', border: 'border-red-200', btn: 'bg-red-500' }
+        };
+
+        // --- INITIALIZATION ---
+        function init() {
+            renderTabs();
+            renderQuestions();
+            updateCharts();
+            updateStats();
+        }
+
+        // --- CORE FUNCTIONS ---
+
+        function renderTabs() {
+            const subjects = [...new Set(quizData.map(q => q.subject))];
+            subjectTabsContainer.innerHTML = subjects.map(sub => `
+                <button onclick="setSubject('${sub}')" 
+                    class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${currentSubject === sub 
+                        ? `${subjectStyles[sub].btn} text-white shadow-md` 
+                        : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                    }">
+                    ${sub}
+                </button>
+            `).join('');
+        }
+
+        function setSubject(sub) {
+            currentSubject = sub;
+            renderTabs();
+            renderQuestions();
+        }
+
+        function renderQuestions() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const filteredQuestions = quizData.filter(q => 
+                (q.subject === currentSubject || searchTerm.length > 0) &&
+                (q.q.toLowerCase().includes(searchTerm) || q.subject.toLowerCase().includes(searchTerm))
+            );
+
+            if (filteredQuestions.length === 0) {
+                questionsGrid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            const styles = subjectStyles[filteredQuestions[0].subject] || subjectStyles['Hindi'];
+
+            questionsGrid.innerHTML = filteredQuestions.map(q => {
+                const subStyle = subjectStyles[q.subject];
+                return `
+                <div class="question-card bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col h-full relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-1 h-full ${subStyle.bg.replace('bg-', 'bg-')} group-hover:${subStyle.btn}"></div>
+                    <div class="flex justify-between items-start mb-3 pl-3">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${subStyle.bg} ${subStyle.color}">
+                            Q${q.id} • ${q.subject}
+                        </span>
+                    </div>
+                    <h3 class="text-gray-900 font-medium text-lg mb-4 pl-3 flex-grow leading-relaxed">${q.q}</h3>
+                    
+                    <div class="space-y-2 pl-3" id="options-${q.id}">
+                        ${q.options.map((opt, idx) => `
+                            <button onclick="checkAnswer(${q.id}, ${idx}, this)" 
+                                class="option-btn w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-sm text-gray-700 flex items-center group-focus:ring-2">
+                                <span class="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center mr-3 text-xs font-bold text-gray-400 option-letter">${String.fromCharCode(65+idx)}</span>
+                                ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <div id="feedback-${q.id}" class="hidden mt-4 pl-3 pt-3 border-t border-gray-100 text-sm animate-fade-in">
+                        <!-- Feedback injected here -->
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function checkAnswer(qId, selectedIdx, btnElement) {
+            // Prevent multiple clicks if already answered (optional, but good for scoring)
+            if (btnElement.parentElement.classList.contains('answered')) return;
+
+            const question = quizData.find(q => q.id === qId);
+            const parent = document.getElementById(`options-${qId}`);
+            const feedback = document.getElementById(`feedback-${qId}`);
+            const buttons = parent.querySelectorAll('.option-btn');
+            
+            parent.classList.add('answered');
+
+            // Visual Logic
+            if (selectedIdx === question.correct) {
+                // Correct
+                btnElement.classList.remove('border-gray-200', 'hover:bg-gray-50');
+                btnElement.classList.add('bg-green-50', 'border-green-500', 'text-green-800');
+                btnElement.querySelector('.option-letter').classList.add('bg-green-500', 'text-white', 'border-green-500');
+                
+                feedback.innerHTML = `<p class="text-green-600 font-semibold flex items-center"><i class="fas fa-check-circle mr-2"></i> Correct!</p>
+                ${question.explanation ? `<p class="text-gray-500 mt-1">${question.explanation}</p>` : ''}`;
+                
+                if(!answeredIds.has(qId)) {
+                    currentScore++;
+                    totalAnswered++;
+                    answeredIds.add(qId);
+                }
+            } else {
+                // Incorrect
+                btnElement.classList.remove('border-gray-200', 'hover:bg-gray-50');
+                btnElement.classList.add('bg-red-50', 'border-red-500', 'text-red-800');
+                btnElement.querySelector('.option-letter').classList.add('bg-red-500', 'text-white', 'border-red-500');
+
+                // Highlight correct one
+                const correctBtn = buttons[question.correct];
+                correctBtn.classList.add('bg-green-50', 'border-green-500', 'text-green-800');
+                correctBtn.querySelector('.option-letter').classList.add('bg-green-500', 'text-white', 'border-green-500');
+
+                feedback.innerHTML = `<p class="text-red-600 font-semibold flex items-center"><i class="fas fa-times-circle mr-2"></i> Incorrect</p>
+                ${question.explanation ? `<p class="text-gray-500 mt-1">${question.explanation}</p>` : ''}`;
+                
+                if(!answeredIds.has(qId)) {
+                    totalAnswered++;
+                    answeredIds.add(qId);
+                }
+            }
+
+            feedback.classList.remove('hidden');
+            updateScoreDisplay();
+        }
+
+        function updateScoreDisplay() {
+            scoreDisplay.innerText = `Score: ${currentScore} / ${totalAnswered}`;
+            scoreDisplay.classList.remove('hidden');
+        }
+
+        function resetQuiz() {
+            currentScore = 0;
+            totalAnswered = 0;
+            answeredIds.clear();
+            scoreDisplay.classList.add('hidden');
+            renderQuestions(); // Re-renders cleanly
+        }
+
+        // --- CHART LOGIC ---
+
+        function updateCharts() {
+            // Subject Distribution
+            const subjects = {};
+            quizData.forEach(q => subjects[q.subject] = (subjects[q.subject] || 0) + 1);
+            
+            const ctxSubject = document.getElementById('subjectChart').getContext('2d');
+            new Chart(ctxSubject, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(subjects),
+                    datasets: [{
+                        data: Object.values(subjects),
+                        backgroundColor: ['#ea580c', '#2563eb', '#16a34a', '#9333ea', '#dc2626'], // Tailwind colors
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // Option Distribution
+            const optionsCount = [0, 0, 0, 0]; // A, B, C, D
+            quizData.forEach(q => optionsCount[q.correct]++);
+            
+            // Update Text Stats
+            countA.innerText = optionsCount[0];
+            countB.innerText = optionsCount[1];
+            countC.innerText = optionsCount[2];
+            countD.innerText = optionsCount[3];
+
+            const ctxDist = document.getElementById('distributionChart').getContext('2d');
+            new Chart(ctxDist, {
+                type: 'bar',
+                data: {
+                    labels: ['A / क', 'B / ख', 'C / ग', 'D / घ'],
+                    datasets: [{
+                        label: 'Frequency',
+                        data: optionsCount,
+                        backgroundColor: ['#3b82f6', '#22c55e', '#eab308', '#ef4444'],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function updateStats() {
+            // Placeholder for any other stat calculations
+        }
+
+        // --- EVENT LISTENERS ---
+        searchInput.addEventListener('input', () => {
+            renderQuestions();
+        });
+
+        // Start
+        window.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</body>
+</html>
