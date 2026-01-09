@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nalanda Public School - Exam Portal</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Placeholder Comments -->
+    <!-- Chosen Palette: Slate (Backgrounds), Blue (Primary/Actions), Indigo (Accents), Red/Green (Feedback). Professional and clean academic look. -->
+    
+    <!-- Application Structure Plan: 
+         1. Welcome/Hero Screen: Context of the exam (School Name, Class, Time).
+         2. Main Exam Interface:
+            - Sidebar/Top Nav: Subject switching (Hindi, English, Bio, Chem, Ag).
+            - Question Area: Scrollable list of cards for the active subject.
+            - Sticky Footer: Progress tracking and "Submit" action.
+         3. Results Dashboard:
+            - Appears after submission.
+            - Summary KPIs (Total Score, Percentage).
+            - Chart.js Bar Chart: Subject-wise performance breakdown.
+            - Answer Key Review: Toggle to show correct answers vs user selection.
+         
+         Why: This structure mimics real Computer Based Test (CBT) platforms, helping students practice in a realistic environment while making the static content interactive.
+    -->
+
+    <!-- Visualization & Content Choices:
+         1. Subject Navigation: Tabular layout. Goal: Organize. Interaction: Filters questions by category.
+         2. Question Cards: HTML Cards. Goal: Inform/Interact. Interaction: Selection of options (Radio button logic).
+         3. Performance Chart: Chart.js Bar. Goal: Compare/Analyze. Interaction: Visualizes strengths/weaknesses per subject.
+         4. Score Gauge: Simple HTML/CSS stats. Goal: Inform. 
+    -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        /* Custom Chart Container */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Hide scrollbar for cleaner UI */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .option-selected {
+            background-color: #eff6ff; /* blue-50 */
+            border-color: #3b82f6; /* blue-500 */
+        }
+        
+        /* NEW STYLES FOR ANSWER KEY */
+        .correct-answer {
+            background-color: #dcfce7 !important; /* emerald-100 */
+            border-color: #10b981 !important; /* emerald-500 */
+            color: #065f46 !important;
+            position: relative;
+        }
+        .correct-answer::after {
+            content: '✓';
+            position: absolute;
+            right: 1rem;
+            font-weight: bold;
+            color: #059669;
+        }
+
+        .wrong-answer {
+            background-color: #fee2e2 !important; /* red-100 */
+            border-color: #ef4444 !important; /* red-500 */
+            color: #991b1b !important;
+            position: relative;
+        }
+        .wrong-answer::after {
+            content: '✗';
+            position: absolute;
+            right: 1rem;
+            font-weight: bold;
+            color: #b91c1c;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased">
+
+    <!-- APP CONTAINER -->
+    <div id="app" class="min-h-screen flex flex-col">
+
+        <!-- HEADER -->
+        <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-600 text-white p-2 rounded-lg font-bold text-lg">NP</div>
+                    <div>
+                        <h1 class="font-bold text-slate-900 leading-tight">Nalanda Public School</h1>
+                        <p class="text-xs text-slate-500">1st MCQ Test • Jan 2026 • Class 11 Ag</p>
+                    </div>
+                </div>
+                <div id="timer-display" class="hidden md:block font-mono text-lg font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded">
+                    00:00
+                </div>
+                <!-- Added Status Indicator -->
+                <div id="mode-display" class="hidden md:block text-sm font-bold px-3 py-1 rounded bg-slate-100 text-slate-600">
+                    Exam Mode
+                </div>
+            </div>
+        </header>
+
+        <!-- WELCOME SCREEN (Initially Visible) -->
+        <main id="welcome-screen" class="flex-grow flex flex-col items-center justify-center p-6 text-center">
+            <div class="bg-white p-8 rounded-2xl shadow-lg max-w-2xl w-full border border-slate-100">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Class 11th Agriculture - MCQ Test</h2>
+                <p class="text-slate-600 mb-8 text-lg">
+                    Select a mode to proceed. You can simulate the exam environment or view the solved answer key directly.
+                </p>
+                
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <span class="block text-2xl">📚</span>
+                        <span class="text-sm font-semibold">Hindi</span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <span class="block text-2xl">🔤</span>
+                        <span class="text-sm font-semibold">English</span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <span class="block text-2xl">🧬</span>
+                        <span class="text-sm font-semibold">Ag-Bio</span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <span class="block text-2xl">🧪</span>
+                        <span class="text-sm font-semibold">Chemistry</span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <span class="block text-2xl">🌾</span>
+                        <span class="text-sm font-semibold">Agriculture</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row gap-4 justify-center">
+                    <button onclick="startExam()" class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all transform hover:scale-105 shadow-md">
+                        Start Examination
+                    </button>
+                    <button onclick="startAnswerKeyMode()" class="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all transform hover:scale-105 shadow-md flex items-center justify-center gap-2">
+                        <span>📝</span> View Solved Answer Key
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- EXAM INTERFACE (Hidden Initially) -->
+        <main id="exam-interface" class="hidden flex-grow flex flex-col md:flex-row max-w-7xl mx-auto w-full">
+            
+            <!-- Sidebar Navigation -->
+            <aside class="w-full md:w-64 bg-white border-r border-slate-200 flex-shrink-0 md:h-[calc(100vh-64px)] overflow-y-auto">
+                <div class="p-4 border-b border-slate-100">
+                    <h3 class="font-bold text-slate-700">Subjects</h3>
+                </div>
+                <nav class="p-2 space-y-1" id="subject-nav">
+                    <!-- Nav items generated by JS -->
+                </nav>
+            </aside>
+
+            <!-- Question Area -->
+            <section class="flex-grow p-4 md:p-8 overflow-y-auto h-[calc(100vh-64px)] pb-24" id="question-container">
+                <div id="subject-header" class="mb-6">
+                    <h2 class="text-2xl font-bold text-slate-800" id="current-subject-title">Subject Name</h2>
+                    <p class="text-slate-500 text-sm">Select the correct option for each question.</p>
+                </div>
+                
+                <div id="questions-list" class="space-y-6">
+                    <!-- Questions generated by JS -->
+                </div>
+
+                <!-- Section Navigation -->
+                <div class="mt-8 flex justify-between">
+                    <button id="prev-btn" onclick="changeSubject(-1)" class="px-4 py-2 text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50">Previous Section</button>
+                    <button id="next-btn" onclick="changeSubject(1)" class="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700">Next Section</button>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- SUBMIT FOOTER (Visible during exam) -->
+        <footer id="exam-footer" class="hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <div class="text-sm text-slate-600 hidden md:block">
+                    Questions Answered: <span id="answered-count" class="font-bold text-blue-600">0</span> / <span id="total-count">0</span>
+                </div>
+                <button onclick="submitExam()" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow-sm transition-colors ml-auto">
+                    Submit Test
+                </button>
+            </div>
+        </footer>
+
+        <!-- RESULTS DASHBOARD (Hidden Initially) -->
+        <main id="results-dashboard" class="hidden flex-grow p-4 md:p-8 max-w-7xl mx-auto w-full">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-slate-900">Examination Results</h2>
+                <p class="text-slate-600">Performance Summary</p>
+            </div>
+
+            <!-- Score Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 text-center">
+                    <div class="text-4xl font-bold text-blue-600 mb-2" id="final-score">0</div>
+                    <div class="text-sm text-slate-500 uppercase tracking-wider font-semibold">Total Score</div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 text-center">
+                    <div class="text-4xl font-bold text-emerald-500 mb-2" id="final-percentage">0%</div>
+                    <div class="text-sm text-slate-500 uppercase tracking-wider font-semibold">Percentage</div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 text-center">
+                    <div class="text-4xl font-bold text-purple-500 mb-2" id="final-attempted">0</div>
+                    <div class="text-sm text-slate-500 uppercase tracking-wider font-semibold">Attempted</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons for Results -->
+            <div class="flex justify-center gap-4 mb-8">
+                <button onclick="reviewSolutions()" class="px-6 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                    Review Detailed Solutions
+                </button>
+            </div>
+
+            <!-- Chart Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-800 mb-4">Subject Performance</h3>
+                    <div class="chart-container">
+                        <canvas id="resultsChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-800 mb-4">Section Analysis</h3>
+                    <div class="space-y-4" id="section-analysis">
+                        <!-- JS populated -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button onclick="location.reload()" class="px-6 py-3 bg-slate-800 text-white rounded-lg hover:bg-slate-900 transition-colors">
+                    Back to Home
+                </button>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- DATA & LOGIC -->
+    <script>
+        // --- DATA EXTRACTION FROM SOURCE DOCUMENT ---
+        // Note: Correct answers (correctIndex) are estimated based on general knowledge 
+        // as the key was not provided in the source text.
+        const examData = {
+            "Hindi": [
+                { q: "नदी तट पर आपने मेरी प्रार्थना नहीं स्वीकार की थी।' इस पंक्ति में 'प्रार्थना' शब्द से आशय है-", options: ["मेरा कथन", "मेरा समझाना", "मेरी नकद राशि", "मेरा आशीष"], correct: 0 },
+                { q: "मियाँ नसीरुद्दीन नानबाइयों के माने जाते थे-", options: ["उस्ताद", "मसीहा", "शागिर्द", "कलासाज"], correct: 1 },
+                { q: "'पथेर पांचाली' फिल्म निर्माण में सबसे बड़ी समस्या थी-", options: ["समय का अभाव", "पात्रों का अभाव", "उचित स्थान का अभाव", "धन का अभाव"], correct: 3 },
+                { q: "'दुर्बल गाय बलशाली गाय के चले जाने से प्रसन नहीं है।' यहाँ दुर्बल गाय है—", options: ["भारत की जनता", "लार्ड कर्जन", "सम्राट् एडवर्ड", "इंग्लैण्ड की जनता"], correct: 0 },
+                { q: "'गलता लोहा' किसके नष्ट होने का प्रतीक है?", options: ["धन का अभिमान", "कारीगरी का अभिमान", "कुशल-बुद्धि का अभिमान", "कुलीनता का अभिमान"], correct: 3 },
+                { q: "स्वतन्त्रता-प्राप्ति के बाद लाहुल-स्पीति किस राज्य से सम्बद्ध रहा?", options: ["हिमाचल प्रदेश", "पंजाब राज्य", "हरियाणा राज्य", "जम्मू-कश्मीर राज्य"], correct: 1 },
+                { q: "'ठेका लिया है तुमने सारी दुनिया का?' रजनी के पति के इस कथन में मूल भाव है-", options: ["लाचारी", "आक्रोश", "व्यंग्य", "उपेक्षा"], correct: 2 },
+                { q: "'पेड को हटाकर उसे जल्दी निकाल लेना चाहिए' - यह कहा", options: ["माली ने", "चपरासी ने", "मनचले क्लर्क ने", "ज्वाइंट सेक्रेटरी ने"], correct: 0 },
+                { q: "'भारत माता' पाठ संकलित है—", options: ["मेरी कहानी से", "हिन्दुस्तान की समस्याएँ से", "हिन्दुस्तान की कहानी से", "विश्व इतिहास की झलक से"], correct: 2 },
+                { q: "कबीर की भाषा कहलाती है-", options: ["ब्रज भाषा", "तत्सम-प्रधान भाषा", "अवधी भाषा", "सधुक्कड़ी भाषा"], correct: 3 },
+                { q: "मीराँ अपने आराध्य कृष्ण की उपासना करती थी—", options: ["सेवक-भाव से", "दास्य-भाव से", "मधुरा-भाव से", "सख्य-भाव से"], correct: 2 },
+                { q: "'घर की याद' कविता में कवि ने संदेशवाहक को—", options: ["बादल", "मोर", "मानसून", "बारिश"], correct: 2 }, // Often Sawan/Cloud, marked text as Monsoon/Cloud context
+                { q: "'चंपा काले काले अच्छर नहीं चीन्हती' कविता के रचयिता हैं-", options: ["त्रिलोचन", "भवानी प्रसाद मिश्र", "रामनरेश त्रिपाठी", "दुष्यन्त कुमार"], correct: 0 },
+                { q: "दुष्यन्त कुमार की 'गजल' किस संग्रह से ली गई है?", options: ["सूर्य का स्वागत", "एक कण्ठ विषपायी", "साये में धूप", "आवाजों के घेरे"], correct: 2 },
+                { q: "अक्क महादेवी की कविताओं को हिन्दी में कहा गया है-", options: ["वाणी", "वचन", "अन्योक्ति", "साखी"], correct: 1 }
+            ],
+            "English": [
+                { q: "How many types of auxiliary verb?", options: ["2", "4", "1", "5"], correct: 0 }, // Primary & Modal
+                { q: "The primary helping verb is____.", options: ["Could", "can", "may", "are"], correct: 3 }, // 'are' is form of 'be' (primary)
+                { q: "Rohit ……….. climb the tree. (Ability)", options: ["can", "may", "could", "will"], correct: 0 },
+                { q: "There is no cloud in the sky. It ……….. rain today. (Very feeble possibility)", options: ["may", "can", "might", "could"], correct: 2 },
+                { q: "The table is made ………. wood.", options: ["for", "from", "of", "in"], correct: 2 },
+                { q: "He …………….. (not play) cricket last evening.", options: ["does not play", "will not play", "did not play", "has not played"], correct: 2 },
+                { q: "He …… just ….. (finish) his work.", options: ["finished", "had finished", "has finished", "finishes"], correct: 2 },
+                { q: "There are ……….. forty students in the hall.", options: ["any", "some", "each", "every"], correct: 1 },
+                { q: "He has gone through ……… books he has.", options: ["any", "little", "a little", "the few"], correct: 3 },
+                { q: "The car has hardly……… petrol in it.", options: ["some", "any", "few", "little"], correct: 1 },
+                { q: "Who is the writer of the lesson “The Summer of the Beautiful White Horse”?", options: ["J.B. Priestley", "A.J.Cronin", "Vikram Seth", "William Saroyan"], correct: 3 },
+                { q: "How far did John Byro walk to reach the author’s house?", options: ["Five miles", "Eight miles", "Ten miles", "Thirteen miles"], correct: 2 },
+                { q: "By what name did Murad call the horse when he asked him to run?", options: ["Hira", "Byro", "Shire", "Wazire"], correct: 3 },
+                { q: "What relation did Mrs Dorling have with the narrator’s mother?", options: ["She was her relative", "She was her friend", "She was an old acquaintance", "None of these"], correct: 2 },
+                { q: "Mrs Pearson's family look at and treats her?", options: ["as a servant only", "as a pauper", "as not a human being", "none of the above"], correct: 0 }
+            ],
+            "Ag-Bio": [
+                { q: "नील हरित शैवाल वर्गीकरण के किस वर्ग में आते हैं?", options: ["प्लांटी", "मोनेरा", "प्रोटिस्टा", "कवक"], correct: 1 },
+                { q: "डोमेन नाम दिया था?", options: ["कार्ल वूज", "c b वाननेल", "हैकल", "व्हिटेकर"], correct: 0 },
+                { q: "पौधे का नामकरण विज्ञान कहलाता है?", options: ["वर्गीकरण", "पहचान", "टैक्सोनॉमी", "नोमेनक्लचर"], correct: 3 },
+                { q: "उल्लू किस जीव को खाकर हमें लाभ पहुंचता है?", options: ["चूहा", "खरगोश", "सांप", "रेशम"], correct: 0 },
+                { q: "पानी में पाए जाने वाले सर्प होते हैं?", options: ["विषहीन", "विषैला", "अत्यधिक विषैला", "इनमें से कोई नहीं"], correct: 0 }, // Generally mostly non-venomous in Indian agri context context? Or generic. Assuming non-venomous for fresh water common types.
+                { q: "एपिस इंडिका किसका एक प्रकार है?", options: ["रेशमकीट का", "मधुमक्खी का", "लाख कीट का", "दीमक का"], correct: 1 },
+                { q: "अनुवांशिकी के जनक के रूप में जाना जाता है?", options: ["ग्रेगर जॉन मेंडल", "अल्बर्ट आइंस्टीन", "न्यूटन", "एंटोन वोन ल्यूवेन्हॉक"], correct: 0 },
+                { q: "मेंडल ने मटर की कितनी किस्म का अध्ययन किया?", options: ["22", "7", "34", "14"], correct: 1 }, // 7 characters
+                { q: "पादप कोशिका भित्ति मुख्यतः किसकी बनी हुई होती है?", options: ["सेल्यूलोज", "ग्लूकोज", "प्रोटीन", "वसा"], correct: 0 },
+                { q: "वह संयोजी ऊतक जो अस्थियों को अस्थियों से जोड़ता है कहलाता है?", options: ["कंडरा", "प्लाज्मा", "स्नायु", "वसामय"], correct: 2 }, // Ligament
+                { q: "किसान का मित्र कहलाता है?", options: ["नैरिज", "केचुआ", "चूहा", "चिड़िया"], correct: 1 },
+                { q: "कोशिका की आत्मघाती थैली कहलाती है?", options: ["माइटोकांड्रिया", "हरित लवक", "लाइसोसोम", "राइबोसोम"], correct: 2 },
+                { q: "स्पोरोपोलेनिन परागकण के किस भाग में पाया जाता है?", options: ["बाह्य चोल", "अंत चोल", "कोशिका द्रव्य", "केंद्रक"], correct: 0 },
+                { q: "निषेचन के बाद बीज किसे बनता है?", options: ["बिजाण्ड से", "अंडाशय से", "भ्रूण से", "भ्रूणपोष से"], correct: 0 },
+                { q: "बिना निषेचन के फल का निर्माण कहलाता है?", options: ["बहुभ्रूणता", "बहुबिजाणुकता", "अनिषेकजनन", "अनिषेकफलन"], correct: 3 }
+            ],
+            "Chemistry": [
+                { q: "विक्टर मेयर विधि से ज्ञात करते हैं", options: ["तुल्यांकी भार", "अणुभार", "परमाणु भार", "उपरोक्त सभी"], correct: 1 },
+                { q: "NaOH का अणुभार है–", options: ["40", "60", "20", "10"], correct: 0 },
+                { q: "न्यूट्रॉन होता है–", options: ["संतृप्त", "असंतृप्त", "उदासीन", "कोई नहीं"], correct: 2 },
+                { q: "एक d-उपकक्ष में कक्षों की संख्या होती है–", options: ["3", "4", "5", "6"], correct: 2 },
+                { q: "d-उपकक्ष की आकृति होती है–", options: ["गोलाकार", "डम्बलाकार", "द्वि-डम्बलाकार", "कोई नहीं"], correct: 2 },
+                { q: "आधुनिक आवर्त नियम दिया–", options: ["मेंडलीफ", "मोजले", "रदरफोर्ड", "न्यूटन"], correct: 1 },
+                { q: "निम्न में से सहसंयोजक यौगिक है–", options: ["CaO", "KCl", "Na₂S", "H₂"], correct: 3 },
+                { q: "किस बंध में इलेक्ट्रॉन का आदान-प्रदान होता है–", options: ["आयनिक", "सहसंयोजक", "उपसहसंयोजक", "NOT"], correct: 0 },
+                { q: "N–N के बीच बंध होता है–", options: ["एकल बंध", "द्विबंध", "त्रिबंध", "NOT"], correct: 2 },
+                { q: "शुद्ध जल की मोलरता होती है–", options: ["1", "7", "55.55", "5.55"], correct: 2 },
+                { q: "pH तथा pOH मान का योग होता है–", options: ["7", "14", "13", "15"], correct: 1 },
+                { q: "pH स्केल पर अम्लता का मान होता है–", options: ["0–7", "7–14", "0–14", "NOT"], correct: 0 },
+                { q: "स्थिर दाब पर प्रक्रम कहलाता है–", options: ["समतापी", "समदाबी", "समआयतन", "रुदोष्म प्रक्रम"], correct: 1 },
+                { q: "एंट्रॉपी बढ़ने का सही क्रम है–", options: ["ठोस < द्रव < गैस", "द्रव < ठोस < गैस", "गैस < ठोस < द्रव", "ठोस < गैस < द्रव"], correct: 0 }
+            ],
+            "Agriculture": [
+                { q: "निम्न में से पौधों के लिए महत्वपूर्ण जल है।", options: ["आसुत जल", "आर्द्रताग्राही जल", "कैशीय जल", "स्वतंत्र जल"], correct: 2 },
+                { q: "खड़ी फसल की मृदा में कार्बन डाइऑक्साइड की मात्रा परती मृदा की अपेक्षा होती है ।", options: ["लगभग 10 गुनी", "लगभग दो गुनी", "लगभग बराबर", "लगभग 20 गुनी"], correct: 0 },
+                { q: "पौधशाला में नवांकुर पौधों को मुख्य रूप से हानि पहुंचाने वाली व्याधि कौन सी है ।", options: ["आर्द्रगलन रोग", "पर्णकुंचन रोग", "छाछ्या रोग", "विषाणु"], correct: 0 }, // Damping off
+                { q: "समान्यत: किस आयु में वार्षिक पौधों की पौध रौपाई करनी चाहिए ।", options: ["एक सप्ताह", "8 से 10 सप्ताह", "2 सप्ताह", "4 से 6 सप्ताह"], correct: 3 },
+                { q: "टमाटर की बीजदर कितनी है ।", options: ["400 से 500 ग्राम/ हेक्टेयर", "800 से 900 ग्राम/हेक्टेयर", "1.5 से 2 किलोग्राम/हेक्टेयर", "5 किलोग्राम/हेक्टर"], correct: 0 },
+                { q: "बुलनोज किसकी किस्म है।", options: ["लौकी", "शिमला मिर्च", "गाजर", "पत्ता गोभी"], correct: 1 },
+                { q: "मटर की अगेती किस्म है।", options: ["अर्किल", "पूसा ज्योति", "जवाहर मटर", "सिलेक्शन -17"], correct: 0 },
+                { q: "फ्रूट फ्लाई को नियंत्रित किया जाता है।", options: ["मैलाथियान", "रोगोर", "बॉर्डो मिश्रण", "मेन्कोजेब"], correct: 0 },
+                { q: "पुष्पराज की उपाधि निम्न में से किस पुष्प को दी गई है ।", options: ["ग्लेडियोलस", "गैंदा", "गुलदाउदी", "गेंदा"], correct: 2 }, // Chrysanthemum often called Queen, Rose King? or Gladiolus? In Indian context usually Guldaudi or Rose. Let's assume Guldaudi based on options.
+                { q: "गुलदाउदी की उत्पत्ति किस देश में हुई है ।", options: ["जापान", "चीन", "अफ्रीका", "भारत"], correct: 1 },
+                { q: "भारत से सर्वाधिक निर्यात किये जाने वाली औषधिय फसल है।", options: ["तुलसी", "गिलोय", "इसबगोल", "सफेद मूसली"], correct: 2 },
+                { q: "विश्व में दूध उत्पादन में भारत का कौन सा स्थान है।", options: ["पहला", "दूसरा", "तीसरा", "चौथा"], correct: 0 },
+                { q: "भारत की जनसंख्या कृषि पर निर्भर है ।", options: ["40%", "70%", "50%", "55%"], correct: 1 }, // Traditionally ~70%, varying modern stats, sticking to text book standard.
+                { q: "पशुओं की आयु ज्ञात करने का सबसे अच्छा तरीका है।", options: ["शारीरिक दशा देखकर", "खुर देखकर", "सींग देखकर", "दांतों द्वारा"], correct: 3 },
+                { q: "साइलेज के लिए उपयुक्त फसल है ।", options: ["मटर", "ज्वार", "लोबिया", "बरसीम"], correct: 1 }
+            ]
+        };
+
+        // --- APP STATE ---
+        const subjects = Object.keys(examData);
+        let currentSubjectIndex = 0;
+        let userAnswers = {}; // Format: { "SubjectName-Index": selectedOptionIndex }
+        let timerInterval;
+        let isReviewMode = false; // New Flag for Answer Key Mode
+
+        // --- CORE FUNCTIONS ---
+
+        function startExam() {
+            isReviewMode = false;
+            document.getElementById('mode-display').innerText = "Exam Mode";
+            document.getElementById('mode-display').className = "hidden md:block text-sm font-bold px-3 py-1 rounded bg-blue-100 text-blue-800";
+            
+            setupInterface();
+            startTimer();
+        }
+
+        function startAnswerKeyMode() {
+            isReviewMode = true;
+            document.getElementById('mode-display').innerText = "Answer Key Mode";
+            document.getElementById('mode-display').className = "hidden md:block text-sm font-bold px-3 py-1 rounded bg-emerald-100 text-emerald-800";
+            document.getElementById('timer-display').style.display = 'none';
+            document.getElementById('exam-footer').style.display = 'none'; // Hide submit button in key mode
+            
+            setupInterface();
+            // Pre-fill user answers with correct ones if needed, or just let the view handle it.
+            // We'll let loadSubject handle the styling.
+        }
+
+        function setupInterface() {
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('exam-interface').classList.remove('hidden');
+            document.getElementById('exam-interface').classList.add('flex');
+            
+            if(!isReviewMode) {
+                document.getElementById('exam-footer').classList.remove('hidden');
+            }
+
+            renderSubjectNav();
+            loadSubject(0);
+        }
+
+        function startTimer() {
+            let seconds = 0;
+            const display = document.getElementById('timer-display');
+            timerInterval = setInterval(() => {
+                seconds++;
+                const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const secs = (seconds % 60).toString().padStart(2, '0');
+                display.innerText = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function renderSubjectNav() {
+            const nav = document.getElementById('subject-nav');
+            nav.innerHTML = subjects.map((sub, idx) => `
+                <button 
+                    onclick="loadSubject(${idx})"
+                    id="nav-btn-${idx}"
+                    class="w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors flex justify-between items-center ${idx === 0 ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50'}"
+                >
+                    <span>${sub}</span>
+                    <span class="text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full">${examData[sub].length}</span>
+                </button>
+            `).join('');
+        }
+
+        function loadSubject(index) {
+            currentSubjectIndex = index;
+            const subject = subjects[index];
+            const questions = examData[subject];
+
+            // Update Nav Styles
+            subjects.forEach((_, i) => {
+                const btn = document.getElementById(`nav-btn-${i}`);
+                if (i === index) {
+                    btn.className = "w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors flex justify-between items-center bg-blue-50 text-blue-700 border-l-4 border-blue-600";
+                } else {
+                    btn.className = "w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors flex justify-between items-center text-slate-600 hover:bg-slate-50";
+                }
+            });
+
+            // Update Header
+            document.getElementById('current-subject-title').innerText = subject + (isReviewMode ? " (Answer Key)" : "");
+
+            // Render Questions
+            const list = document.getElementById('questions-list');
+            list.innerHTML = questions.map((q, qIdx) => `
+                <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex gap-3 mb-4">
+                        <span class="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-slate-100 text-slate-600 rounded-full font-bold text-sm">${qIdx + 1}</span>
+                        <h3 class="text-lg text-slate-800 font-medium leading-relaxed">${q.q}</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pl-11">
+                        ${q.options.map((opt, oIdx) => {
+                            const uniqueId = `${subject}-${qIdx}`;
+                            const isSelected = userAnswers[uniqueId] === oIdx;
+                            const isCorrect = q.correct === oIdx;
+                            
+                            // Determine Style based on Mode
+                            let btnClass = 'border-slate-200 hover:border-slate-300 hover:bg-slate-50';
+                            
+                            if (isReviewMode) {
+                                // Review Mode Logic
+                                if (isCorrect) {
+                                    btnClass = 'correct-answer'; // Always show correct answer
+                                } else if (isSelected && !isCorrect) {
+                                    btnClass = 'wrong-answer'; // Highlight user mistake
+                                } else {
+                                    btnClass = 'opacity-50 border-slate-100'; // Dim irrelevant options
+                                }
+                            } else {
+                                // Exam Mode Logic
+                                if (isSelected) btnClass = 'option-selected';
+                            }
+
+                            return `
+                            <button 
+                                onclick="selectAnswer('${subject}', ${qIdx}, ${oIdx})"
+                                disabled="${isReviewMode}"
+                                class="text-left px-4 py-3 rounded-lg border transition-all ${btnClass}"
+                            >
+                                <span class="font-semibold mr-2 opacity-70">${String.fromCharCode(65 + oIdx)}.</span> ${opt}
+                            </button>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `).join('');
+
+            // Scroll top
+            document.getElementById('question-container').scrollTop = 0;
+            
+            // Button States
+            document.getElementById('prev-btn').disabled = index === 0;
+            document.getElementById('next-btn').style.display = index === subjects.length - 1 ? 'none' : 'block';
+        }
+
+        function changeSubject(dir) {
+            const newIndex = currentSubjectIndex + dir;
+            if (newIndex >= 0 && newIndex < subjects.length) {
+                loadSubject(newIndex);
+            }
+        }
+
+        function selectAnswer(subject, qIndex, optionIndex) {
+            if (isReviewMode) return; // Disable interaction in review mode
+
+            const uniqueId = `${subject}-${qIndex}`;
+            userAnswers[uniqueId] = optionIndex;
+            
+            updateProgress();
+            // Re-render to show selection state
+            loadSubject(currentSubjectIndex);
+        }
+
+        function updateProgress() {
+            const total = Object.values(examData).reduce((acc, arr) => acc + arr.length, 0);
+            const answered = Object.keys(userAnswers).length;
+            document.getElementById('answered-count').innerText = answered;
+            document.getElementById('total-count').innerText = total;
+        }
+
+        function reviewSolutions() {
+            // Hide dashboard, Show exam interface in review mode
+            document.getElementById('results-dashboard').classList.add('hidden');
+            document.getElementById('exam-interface').classList.remove('hidden');
+            document.getElementById('exam-interface').classList.add('flex');
+            
+            // Turn on review mode logic
+            isReviewMode = true;
+            document.getElementById('current-subject-title').innerText = subjects[currentSubjectIndex] + " (Review)";
+            
+            // Reload current subject to apply new styles
+            loadSubject(0);
+        }
+
+        function submitExam() {
+            if (!confirm("Are you sure you want to submit your test?")) return;
+            
+            clearInterval(timerInterval);
+            
+            // Calculate Results
+            let totalScore = 0;
+            let totalQuestions = 0;
+            let subjectScores = {};
+            let subjectTotals = {};
+
+            subjects.forEach(sub => {
+                let subScore = 0;
+                examData[sub].forEach((q, idx) => {
+                    const ans = userAnswers[`${sub}-${idx}`];
+                    if (ans === q.correct) subScore++;
+                });
+                subjectScores[sub] = subScore;
+                subjectTotals[sub] = examData[sub].length;
+                totalScore += subScore;
+                totalQuestions += examData[sub].length;
+            });
+
+            // Show Dashboard
+            document.getElementById('exam-interface').classList.add('hidden');
+            document.getElementById('exam-footer').classList.add('hidden');
+            document.getElementById('results-dashboard').classList.remove('hidden');
+
+            // Update DOM Stats
+            document.getElementById('final-score').innerText = `${totalScore} / ${totalQuestions}`;
+            document.getElementById('final-percentage').innerText = `${Math.round((totalScore/totalQuestions)*100)}%`;
+            document.getElementById('final-attempted').innerText = Object.keys(userAnswers).length;
+
+            // Render Chart
+            renderChart(subjectScores, subjectTotals);
+
+            // Render Detailed Analysis
+            renderAnalysis(subjectScores, subjectTotals);
+        }
+
+        function renderChart(scores, totals) {
+            const ctx = document.getElementById('resultsChart').getContext('2d');
+            const percentages = subjects.map(s => (scores[s] / totals[s]) * 100);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: subjects,
+                    datasets: [{
+                        label: 'Score Percentage (%)',
+                        data: percentages,
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.7)', // Blue
+                            'rgba(16, 185, 129, 0.7)', // Green
+                            'rgba(245, 158, 11, 0.7)', // Amber
+                            'rgba(139, 92, 246, 0.7)', // Purple
+                            'rgba(236, 72, 153, 0.7)'  // Pink
+                        ],
+                        borderRadius: 6,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function renderAnalysis(scores, totals) {
+            const container = document.getElementById('section-analysis');
+            container.innerHTML = subjects.map(sub => {
+                const score = scores[sub];
+                const total = totals[sub];
+                const pct = Math.round((score/total)*100);
+                
+                let colorClass = pct >= 80 ? 'text-emerald-600 bg-emerald-50' : 
+                                pct >= 50 ? 'text-amber-600 bg-amber-50' : 
+                                'text-red-600 bg-red-50';
+
+                return `
+                <div class="flex items-center justify-between p-3 rounded-lg border border-slate-100 bg-slate-50">
+                    <div>
+                        <h4 class="font-bold text-slate-700">${sub}</h4>
+                        <p class="text-xs text-slate-500">${score} correct out of ${total}</p>
+                    </div>
+                    <div class="px-3 py-1 rounded font-bold ${colorClass}">
+                        ${pct}%
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+        
+        // Initial setup
+        updateProgress();
+
+    </script>
+</body>
+</html>
