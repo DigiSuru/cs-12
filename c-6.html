@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<title>Class 12 CS - Chapter 6: Searching Notes</title>
+<style>
+    :root { --paper-bg: #fffdf0; --line-col: #9ab; --margin-col: #f76; --ink-col: #0d47a1; --header-col: #b71c1c; --accent-col: #00695c; --highlight-bg: #fff59d; }
+    body { font-family: 'Kalam', cursive; background-color: #555; padding: 20px; color: var(--ink-col); line-height: 1.8; margin: 0; }
+    
+    .notebook { 
+        background-color: var(--paper-bg); 
+        max-width: 950px; 
+        margin: 0 auto; 
+        padding: 4rem 3rem 3rem 6rem; 
+        box-shadow: 10px 10px 20px rgba(0,0,0,0.3); 
+        position: relative; 
+        background-image: repeating-linear-gradient(transparent, transparent 31px, var(--line-col) 31px, var(--line-col) 32px); 
+        min-height: 100vh; 
+    }
+    
+    .notebook::before { 
+        content: ''; 
+        position: absolute; 
+        top: 0; bottom: 0; left: 4.5rem; 
+        width: 2px; 
+        background-color: var(--margin-col); 
+        border-right: 3px solid var(--margin-col); 
+    }
+    
+    h1 { text-align: center; color: var(--header-col); text-transform: uppercase; border-bottom: 3px double var(--header-col); margin-bottom: 30px; font-size: 2.5rem; line-height: 1.2; }
+    h2 { color: #fff; background-color: var(--header-col); display: inline-block; padding: 8px 20px; border-radius: 25px 5px 25px 5px; margin-top: 40px; margin-bottom: 15px; font-size: 1.6rem; transform: rotate(-1deg); box-shadow: 3px 3px 5px rgba(0,0,0,0.2); }
+    h3 { color: var(--accent-col); border-bottom: 2px dashed var(--accent-col); display: inline-block; margin-top: 30px; font-size: 1.4rem; font-weight: 700; }
+    
+    p, li { font-size: 1.25rem; line-height: 32px; text-align: justify; margin-bottom: 0; }
+    ul { margin-top: 0; }
+    
+    .concept-box { 
+        background-color: #e0f2f1; 
+        border-left: 5px solid #00695c; 
+        padding: 15px; 
+        margin: 20px 0; 
+        border-radius: 0 10px 10px 0; 
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Slightly more readable for dense concepts */
+        font-size: 1.1rem;
+    }
+    .concept-box strong { color: #004d40; }
+    
+    .code-block { 
+        font-family: 'Courier New', monospace; 
+        background-color: #f5f5f5; 
+        border: 2px solid #ccc; 
+        padding: 15px; 
+        font-weight: bold; 
+        color: #333; 
+        margin: 15px 0; 
+        white-space: pre-wrap;
+        border-radius: 5px;
+        position: relative;
+    }
+    .code-block::before {
+        content: "PYTHON CODE";
+        position: absolute;
+        top: -10px;
+        right: 10px;
+        background: #333;
+        color: #fff;
+        padding: 2px 8px;
+        font-size: 0.8rem;
+        font-family: sans-serif;
+    }
+    
+    .comparison-table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        margin: 20px 0; 
+        background-color: rgba(255,255,255,0.95); 
+        box-shadow: 3px 3px 0px rgba(0,0,0,0.1);
+    }
+    .comparison-table th { background-color: #b71c1c; color: white; padding: 10px; border: 2px solid #333; font-family: sans-serif; }
+    .comparison-table td { border: 2px solid #333; padding: 10px; font-family: 'Kalam', cursive; vertical-align: top; }
+
+    /* Custom CSS for Diagrams/Shapes */
+    .array-container {
+        display: flex;
+        justify-content: center;
+        margin: 20px 0;
+        font-family: monospace;
+        font-weight: bold;
+    }
+    .array-cell {
+        width: 40px;
+        height: 40px;
+        border: 2px solid #333;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #fff;
+        margin-right: -2px; /* Overlap borders */
+        position: relative;
+    }
+    .array-cell.target {
+        background-color: #ffcc80;
+        border-color: #e65100;
+        z-index: 1;
+    }
+    .array-cell.visited {
+        background-color: #c8e6c9;
+    }
+    .index-label {
+        position: absolute;
+        bottom: -25px;
+        font-size: 0.8rem;
+        color: #666;
+    }
+    .pointer {
+        position: absolute;
+        top: -30px;
+        font-size: 1.5rem;
+        color: var(--header-col);
+        font-weight: bold;
+    }
+
+    .flow-step {
+        border: 2px solid #333;
+        padding: 10px;
+        margin: 10px auto;
+        width: 60%;
+        text-align: center;
+        background: #fff;
+        border-radius: 8px;
+        position: relative;
+    }
+    .arrow-down {
+        width: 0; 
+        height: 0; 
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-top: 15px solid #333;
+        margin: 0 auto;
+    }
+    
+    .important-note {
+        text-decoration: underline;
+        text-decoration-color: var(--header-col);
+        text-decoration-thickness: 2px;
+    }
+
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="notebook">
+
+    <h1>Chapter 6: Searching</h1>
+    <p style="text-align: center; font-size: 1rem; color: #666;">Based on NCERT / Class 12 CS Syllabus</p>
+
+    <h2>1. Introduction (परिचय)</h2>
+    <p>
+        Computer Science में, <strong>Searching</strong> का मतलब है किसी data collection (जैसे कि List या Array) में एक specific element (जिसे key या target कहते हैं) को ढूँढना (locate करना)।
+    </p>
+    <p>
+        अगर element मिल जाता है, तो search <strong>successful</strong> मानी जाती है और हम उस element की <strong>position (index)</strong> return करते हैं। अगर element नहीं मिलता, तो search <strong>unsuccessful</strong> होती है।
+    </p>
+    <div class="concept-box">
+        <strong>Real Life Example:</strong><br>
+        Imagine कीजिये आपको एक Dictionary में 'Python' शब्द का meaning ढूँढना है। या आपको Phone Directory में अपने friend का number ढूँढना है। यह सब Searching algorithms के examples हैं।
+    </div>
+
+    <hr style="border: 0; border-top: 2px dashed #9ab; margin: 30px 0;">
+
+    <h2>2. Linear Search (लीनियर सर्च)</h2>
+    <p>
+        Linear Search सबसे simple searching algorithm है। इसे <strong>Sequential Search</strong> भी कहते हैं। इसमें हम list के हर element को एक-एक करके (sequentially) check करते हैं।
+    </p>
+
+    <h3>Working Principle (कार्य प्रणाली):</h3>
+    <p>
+        इसमें हम list के <strong>start (index 0)</strong> से शुरू करते हैं और target element को list के हर item के साथ compare करते हैं। यह process तब तक चलता है जब तक element मिल न जाए या list खत्म न हो जाए।
+    </p>
+
+    <!-- Visual Diagram for Linear Search -->
+    <div style="text-align: center; margin: 20px 0;">
+        <strong>Target = 12</strong>
+        <div class="array-container">
+            <div class="array-cell visited">5<span class="index-label">0</span></div>
+            <div class="array-cell visited">8<span class="index-label">1</span></div>
+            <div class="array-cell target">12<span class="index-label">2</span></div>
+            <div class="array-cell">20<span class="index-label">3</span></div>
+            <div class="array-cell">1<span class="index-label">4</span></div>
+        </div>
+        <p style="font-size: 1rem; text-align: center;">Index 0 और 1 check किये, Index 2 पर Match मिल गया!</p>
+    </div>
+
+    <h3>Python Code for Linear Search:</h3>
+    <div class="code-block">
+def linear_search(my_list, key):
+    # List को traverse करें
+    for i in range(len(my_list)):
+        if my_list[i] == key:
+            return i  # मिल गया तो index return करें
+    return -1  # पूरा loop खत्म, मतलब नहीं मिला
+
+# Driver Code
+L = [10, 20, 5, 12, 50]
+target = 12
+index = linear_search(L, target)
+if index != -1:
+    print("Element found at index:", index)
+else:
+    print("Element not found")
+    </div>
+
+    <h3>Complexity Analysis:</h3>
+    <ul>
+        <li><strong>Best Case:</strong> Element पहली ही position पर मिल जाए। Complexity: <strong>O(1)</strong>.</li>
+        <li><strong>Worst Case:</strong> Element सबसे last में हो या list में हो ही नहीं। हमें पूरी list (n elements) check करनी पड़ेगी। Complexity: <strong>O(n)</strong>.</li>
+    </ul>
+
+    <hr style="border: 0; border-top: 2px dashed #9ab; margin: 30px 0;">
+
+    <h2>3. Binary Search (बाइनरी सर्च)</h2>
+    <p>
+        Binary Search एक बहुत ही fast algorithm है जो <strong>Divide and Conquer</strong> strategy पर काम करता है। लेकिन इसकी एक बहुत बड़ी शर्त (prerequisite) है।
+    </p>
+
+    <div class="concept-box">
+        <strong>Important Condition:</strong><br>
+        Binary Search का use करने के लिए List का <strong>SORTED</strong> (आरोही या अवरोही क्रम में) होना अनिवार्य है।
+    </div>
+
+    <h3>Working Principle:</h3>
+    <p>
+        Linear Search की तरह यह हर element check नहीं करता। यह सीधे list के <strong>Middle Element</strong> को check करता है:
+    </p>
+    <ol>
+        <li>अगर Target == Middle, तो search successful.</li>
+        <li>अगर Target < Middle, तो हम सिर्फ <strong>Left Half</strong> में ढूँढेंगे (Right half को ignore कर देंगे)।</li>
+        <li>अगर Target > Middle, तो हम सिर्फ <strong>Right Half</strong> में ढूँढेंगे।</li>
+    </ol>
+    <p>हर step में list का size आधा (half) हो जाता है।</p>
+
+    <!-- Visual Diagram for Binary Search -->
+    <div style="text-align: center; margin: 30px 0;">
+        <strong>List: [2, 5, 8, 12, 16, 23, 38, 56, 72, 91] | Target = 23</strong>
+        <br><br>
+        
+        <div style="font-size: 0.9rem;">Step 1: Calculate Mid</div>
+        <div class="array-container">
+            <div class="array-cell">2<span class="pointer" style="left:5px;">L</span></div>
+            <div class="array-cell">5</div>
+            <div class="array-cell">8</div>
+            <div class="array-cell">12</div>
+            <div class="array-cell visited">16<span class="pointer" style="left:5px;">M</span></div>
+            <div class="array-cell">23</div>
+            <div class="array-cell">38</div>
+            <div class="array-cell">56</div>
+            <div class="array-cell">72</div>
+            <div class="array-cell">91<span class="pointer" style="left:5px;">H</span></div>
+        </div>
+        <div style="font-size: 0.9rem;">Mid (16) < Target (23) -> Start = Mid + 1</div>
+        <div class="arrow-down"></div>
+        <br>
+        <div style="font-size: 0.9rem;">Step 2: New Range</div>
+        <div class="array-container">
+            <div class="array-cell" style="opacity: 0.3;">2</div>
+            <div class="array-cell" style="opacity: 0.3;">5</div>
+            <div class="array-cell" style="opacity: 0.3;">8</div>
+            <div class="array-cell" style="opacity: 0.3;">12</div>
+            <div class="array-cell" style="opacity: 0.3;">16</div>
+            <div class="array-cell target">23<span class="pointer" style="left:5px;">L</span><span class="pointer" style="left:20px; color:green;">M</span></div>
+            <div class="array-cell">38</div>
+            <div class="array-cell">56<span class="pointer" style="left:5px;">H</span></div>
+            <div class="array-cell" style="opacity: 0.3;">72</div>
+            <div class="array-cell" style="opacity: 0.3;">91</div>
+        </div>
+        <div style="font-size: 0.9rem;">Found at Mid!</div>
+    </div>
+
+    <h3>Python Code for Binary Search:</h3>
+    <div class="code-block">
+def binary_search(arr, key):
+    low = 0
+    high = len(arr) - 1
+    
+    while low <= high:
+        mid = (low + high) // 2
+        
+        if arr[mid] == key:
+            return mid  # Element found
+        elif arr[mid] < key:
+            low = mid + 1  # Right half में जाओ
+        else:
+            high = mid - 1 # Left half में जाओ
+            
+    return -1  # Element not found
+
+# Sorted List is required
+L = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91]
+print(binary_search(L, 23)) 
+    </div>
+
+    <h3>Complexity Analysis:</h3>
+    <p>
+        चूँकि हर step में list आधी हो रही है, इसकी Time Complexity <strong>O(log<sub>2</sub> n)</strong> होती है। यह Linear search से बहुत fast है बड़ी lists के लिए।
+    </p>
+
+    <hr style="border: 0; border-top: 2px dashed #9ab; margin: 30px 0;">
+
+    <h2>4. Comparison (अंतर)</h2>
+    
+    <table class="comparison-table">
+        <thead>
+            <tr>
+                <th>Feature</th>
+                <th>Linear Search</th>
+                <th>Binary Search</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Pre-condition</strong></td>
+                <td>List sorted होना ज़रूरी <strong>नहीं</strong> है।</td>
+                <td>List का <strong>Sorted</strong> होना अनिवार्य है।</td>
+            </tr>
+            <tr>
+                <td><strong>Approach</strong></td>
+                <td>Sequential (एक के बाद एक)।</td>
+                <td>Divide and Conquer (बांटो और जीतो)।</td>
+            </tr>
+            <tr>
+                <td><strong>Time Complexity</strong></td>
+                <td>O(n) - (Slow for large data)</td>
+                <td>O(log n) - (Very Fast)</td>
+            </tr>
+            <tr>
+                <td><strong>Efficiency</strong></td>
+                <td>कम data के लिए ठीक है।</td>
+                <td>ज्यादा data के लिए best है।</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr style="border: 0; border-top: 2px dashed #9ab; margin: 30px 0;">
+
+    <h2>5. Search by Hashing (हैशिंग)</h2>
+    <p>
+        Hashing searching की एक ऐसी तकनीक है जहाँ हम comparison नहीं करते। बल्कि हम सीधे calculate करते हैं कि element memory में कहाँ होना चाहिए। यह <strong>O(1)</strong> time ले सकता है (Best case में)।
+    </p>
+
+    <h3>Core Concepts:</h3>
+    <ul>
+        <li><strong>Hash Table:</strong> एक data structure (array) जहाँ values store होती हैं।</li>
+        <li><strong>Hash Function:</strong> एक mathematical formula जो key (value) को एक index में convert करता है।<br>
+        Common Example: <code>Hash(x) = x % size_of_table</code></li>
+        <li><strong>Collision:</strong> जब दो अलग-अलग keys का hash same index आ जाए (जैसे 14 % 10 = 4 और 24 % 10 = 4), तो उसे Collision कहते हैं।</li>
+    </ul>
+
+    <div class="concept-box">
+        <strong>Example (Modulus method):</strong><br>
+        Table Size = 10.<br>
+        Store <strong>25</strong>: 25 % 10 = 5 (Index 5 पर store होगा)<br>
+        Store <strong>12</strong>: 12 % 10 = 2 (Index 2 पर store होगा)
+    </div>
+
+    <h3>Chaining (Collision Handling):</h3>
+    <p>
+        जब collision होता है (एक ही slot पर दो values), तो हम उस slot पर एक <strong>Linked List</strong> बना देते हैं। इसे "Chaining" कहते हैं। Python की Dictionary इसी concept पर काम करती है।
+    </p>
+
+    <h3>Summary Diagram of Hashing:</h3>
+    <div style="display: flex; justify-content: space-around; align-items: center; margin: 20px 0; font-family: sans-serif;">
+        <div style="border: 2px solid #333; padding: 10px; border-radius: 5px; background: #fff;">
+            <strong>Key: 103</strong>
+        </div>
+        <div style="font-size: 2rem;">&rarr;</div>
+        <div style="border: 2px dashed #00695c; padding: 10px; border-radius: 50%; background: #e0f2f1; text-align: center;">
+            Hash Function<br>
+            (103 % 10) = 3
+        </div>
+        <div style="font-size: 2rem;">&rarr;</div>
+        <div style="border: 2px solid #333; padding: 0; background: #fff;">
+            <div style="border-bottom: 1px solid #ccc; padding: 5px;">Index 0</div>
+            <div style="border-bottom: 1px solid #ccc; padding: 5px;">Index 1</div>
+            <div style="border-bottom: 1px solid #ccc; padding: 5px;">Index 2</div>
+            <div style="background: #ffcc80; padding: 5px; font-weight: bold;">Index 3: [103]</div>
+            <div style="padding: 5px;">...</div>
+        </div>
+    </div>
+
+    <div class="concept-box" style="background-color: #fff3e0; border-left-color: #ef6c00;">
+        <strong>NOTE for Exam:</strong><br>
+        NCERT में Hashing का detailed implementation कम है, लेकिन concept (Hashing, Hash Function, Collision) बहुत important है। याद रखें कि Python में <code>Dictionary</code> Hashing use करती है।
+    </div>
+
+    <h3 style="margin-top: 50px; text-align: center;">--- End of Chapter 6 Notes ---</h3>
+    <p style="text-align: center;">Good Luck for your Exams! - CS-12</p>
+
+</div>
+
+</body>
+</html>
