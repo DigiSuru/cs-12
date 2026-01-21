@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nalanda Public School - CS Unit Test Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Warm Education -->
+    <!-- Primary Background: #FDFBF7 (Warm Neutral/Paper) -->
+    <!-- Secondary Background: #F3F0EB (Subtle Grey-Beige) -->
+    <!-- Primary Text: #1F2937 (Dark Grey) -->
+    <!-- Accent Blue (Info/Action): #3B82F6 -->
+    <!-- Accent Green (Success): #10B981 -->
+    <!-- Accent Red (Error/Delete): #EF4444 -->
+
+    <!-- Application Structure Plan: 
+         1. Header: School details and context.
+         2. Dashboard: Visual breakdown of marks/question types to give an overview of the exam structure.
+         3. Section A (Quiz): Gamified version of the objective questions. Users click answers, get instant feedback.
+         4. Section B (Concepts): Expandable cards for definitions and specific comparison layouts for 'Diff Between' questions to aid memorization.
+         5. Section C (SQL Lab): The core interactive element. Displays the 'Employee' table and allows users to 'Execute' the exam questions, visually modifying the table (sorting, filtering, updating) to demonstrate the SQL logic.
+    -->
+
+    <!-- Visualization & Content Choices:
+         1. Topic Distribution: Doughnut Chart (Chart.js) -> Goal: Inform user of exam weighting -> Interaction: Hover for details -> Chosen for simple proportional display.
+         2. Quiz Interface: HTML/JS Form elements -> Goal: Active recall testing -> Interaction: Click to reveal answer/explanation.
+         3. Concept Cards: Grid Layout -> Goal: Organize short definitions -> Interaction: Expand/Collapse.
+         4. SQL Simulator: HTML Table + JS DOM Manipulation -> Goal: Demonstrate SQL effects -> Interaction: Buttons trigger table updates (rows added, sorted, hidden) mimicking the SQL commands.
+         
+         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+
+    <style>
+        body {
+            font-family: 'Noto Sans Devanagari', sans-serif;
+            background-color: #FDFBF7;
+            color: #1F2937;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            height: 300px;
+            max-height: 300px;
+            margin: 0 auto;
+        }
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        .interactive-row {
+            transition: all 0.5s ease;
+        }
+        .highlight-row {
+            background-color: #FEF3C7; /* Amber-100 */
+        }
+        .hidden-row {
+            display: none;
+        }
+        .new-row {
+            animation: fadeIn 1s;
+            background-color: #D1FAE5; /* Emerald-100 */
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; background-color: #10B981; }
+            to { opacity: 1; background-color: #D1FAE5; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
+            <div>
+                <h1 class="text-xl md:text-2xl font-bold text-gray-800 text-center md:text-left">Nalanda Public School, Adaksar</h1>
+                <p class="text-sm text-gray-500 text-center md:text-left">3rd Unit Test Solution 2025-26 | Class 12th CS</p>
+            </div>
+            <nav class="mt-4 md:mt-0 flex space-x-2 md:space-x-6 text-sm font-medium overflow-x-auto w-full md:w-auto justify-center">
+                <button onclick="scrollToSection('dashboard')" class="hover:text-blue-600 px-2 py-1 transition-colors">Overview</button>
+                <button onclick="scrollToSection('quiz')" class="hover:text-blue-600 px-2 py-1 transition-colors">Quiz (Sec A)</button>
+                <button onclick="scrollToSection('concepts')" class="hover:text-blue-600 px-2 py-1 transition-colors">Theory (Sec B)</button>
+                <button onclick="scrollToSection('sql-lab')" class="text-blue-600 bg-blue-50 px-3 py-1 rounded-full hover:bg-blue-100 transition-colors">SQL Lab (Sec C)</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-6xl mx-auto px-4 py-8 w-full space-y-12">
+
+        <!-- Intro Section for Context -->
+        <section id="dashboard" class="animate-fade-in">
+            <div class="bg-white rounded-xl p-6 md:p-8 card-shadow border border-gray-100">
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Exam Analysis</h2>
+                        <p class="text-gray-600 mb-6 leading-relaxed">
+                            This interactive solution covers the comprehensive Computer Science unit test focusing on SQL. 
+                            The paper tests understanding of Data Definition Language (DDL), Data Manipulation Language (DML), 
+                            constraints, and practical query writing. Use the sections below to practice and simulate the queries.
+                        </p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-blue-50 p-4 rounded-lg text-center">
+                                <span class="block text-2xl font-bold text-blue-600">20</span>
+                                <span class="text-xs text-gray-500 uppercase tracking-wide">Total Questions</span>
+                            </div>
+                            <div class="bg-green-50 p-4 rounded-lg text-center">
+                                <span class="block text-2xl font-bold text-green-600">SQL</span>
+                                <span class="text-xs text-gray-500 uppercase tracking-wide">Core Topic</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-center justify-center">
+                        <h3 class="text-sm font-semibold text-gray-400 uppercase mb-4 tracking-wider">Question Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="topicChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section A: Interactive Quiz -->
+        <section id="quiz">
+            <div class="mb-6 border-l-4 border-blue-500 pl-4">
+                <h2 class="text-2xl font-bold text-gray-800">Section A: Objective Quiz</h2>
+                <p class="text-gray-600">Test your SQL basics. Click an option to see if you are correct.</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-6" id="quiz-container">
+                <!-- Quiz items injected by JS -->
+            </div>
+        </section>
+
+        <!-- Section B: Concepts & Theory -->
+        <section id="concepts">
+            <div class="mb-6 border-l-4 border-purple-500 pl-4">
+                <h2 class="text-2xl font-bold text-gray-800">Section B: Theory & Concepts</h2>
+                <p class="text-gray-600">Explore definitions and understand key differences between SQL commands.</p>
+            </div>
+
+            <!-- Comparisons -->
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <!-- Char vs Varchar -->
+                <div class="bg-white rounded-lg card-shadow overflow-hidden">
+                    <div class="bg-purple-50 px-6 py-4 border-b border-purple-100">
+                        <h3 class="font-bold text-purple-800">Q17. CHAR vs VARCHAR</h3>
+                    </div>
+                    <div class="p-6 grid grid-cols-2 gap-4 text-sm">
+                        <div class="space-y-2">
+                            <strong class="block text-center text-gray-700 bg-gray-100 py-1 rounded">CHAR</strong>
+                            <p class="text-gray-600">Fixed-length (फिक्स्ड-लेंथ) डेटा टाइप।</p>
+                            <p class="text-xs text-gray-500 italic">Example: CHAR(10) में "Ram" 10 बाइट्स लेगा। (Memory Waste)</p>
+                        </div>
+                        <div class="space-y-2 border-l border-dashed border-gray-300 pl-4">
+                            <strong class="block text-center text-gray-700 bg-gray-100 py-1 rounded">VARCHAR</strong>
+                            <p class="text-gray-600">Variable-length (वैरिएबल-लेंथ) डेटा टाइप।</p>
+                            <p class="text-xs text-gray-500 italic">Example: VARCHAR(10) में "Ram" केवल 3 बाइट्स लेगा। (Memory Save)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delete vs Drop -->
+                <div class="bg-white rounded-lg card-shadow overflow-hidden">
+                    <div class="bg-red-50 px-6 py-4 border-b border-red-100">
+                        <h3 class="font-bold text-red-800">Q18. DELETE vs DROP</h3>
+                    </div>
+                    <div class="p-6 grid grid-cols-2 gap-4 text-sm">
+                        <div class="space-y-2">
+                            <strong class="block text-center text-gray-700 bg-gray-100 py-1 rounded">DELETE</strong>
+                            <span class="inline-block px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-xs font-bold">DML</span>
+                            <p class="text-gray-600">टेबल से केवल डेटा (Rows) हटाता है।</p>
+                            <p class="text-xs text-gray-500">Structure remains.</p>
+                        </div>
+                        <div class="space-y-2 border-l border-dashed border-gray-300 pl-4">
+                            <strong class="block text-center text-gray-700 bg-gray-100 py-1 rounded">DROP</strong>
+                            <span class="inline-block px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-xs font-bold">DDL</span>
+                            <p class="text-gray-600">पूरी टेबल (Structure + Data) को हटा देता है।</p>
+                            <p class="text-xs text-gray-500">Irreversible.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Definitions Grid -->
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4" id="definitions-container">
+                <!-- Definitions injected by JS -->
+            </div>
+        </section>
+
+        <!-- Section C: SQL Lab (The Hero Section) -->
+        <section id="sql-lab" class="pb-12">
+            <div class="mb-6 border-l-4 border-green-500 pl-4">
+                <h2 class="text-2xl font-bold text-gray-800">Section C: SQL Live Lab</h2>
+                <p class="text-gray-600">Interact with the 'Employee' table. Click 'Run Query' to see how the SQL commands from the exam affect the data in real-time.</p>
+            </div>
+
+            <div class="flex flex-col lg:flex-row gap-8">
+                <!-- Visual Table Area -->
+                <div class="lg:w-1/2 order-2 lg:order-1">
+                    <div class="bg-white rounded-xl card-shadow overflow-hidden border border-gray-200 sticky top-24">
+                        <div class="bg-gray-800 text-white px-4 py-3 flex justify-between items-center">
+                            <h3 class="font-mono text-sm">Table: Employee</h3>
+                            <button onclick="resetTable()" class="text-xs bg-gray-600 hover:bg-gray-500 px-3 py-1 rounded transition">Reset Table</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm" id="employee-table">
+                                <thead class="bg-gray-50 border-b border-gray-200 font-semibold text-gray-600">
+                                    <tr>
+                                        <th class="p-4">EmpId</th>
+                                        <th class="p-4">Name</th>
+                                        <th class="p-4">Salary</th>
+                                        <th class="p-4">Department</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100" id="table-body">
+                                    <!-- Rows injected by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="query-display-area" class="bg-gray-900 text-green-400 p-4 font-mono text-xs border-t border-gray-700 min-h-[60px]">
+                            // Waiting for query execution...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Query Controls Area -->
+                <div class="lg:w-1/2 order-1 lg:order-2 space-y-4">
+                    
+                    <!-- Q20 (a) -->
+                    <div class="bg-white p-5 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors cursor-pointer group" onclick="runQuery('select')">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">20 (क) - Selection</span>
+                            <span class="text-xs text-gray-400 group-hover:text-blue-500">Click to Run</span>
+                        </div>
+                        <p class="text-gray-700 font-medium mb-3">उन सभी कर्मचारियों का विवरण दिखाएं जिनका वेतन (Salary) 55000 से कम है।</p>
+                        <div class="hidden group-hover:block text-xs text-gray-500 bg-gray-50 p-2 rounded border border-gray-100">
+                            Query: SELECT * FROM Employee WHERE Salary < 55000;
+                        </div>
+                    </div>
+
+                    <!-- Q20 (b) -->
+                    <div class="bg-white p-5 rounded-lg border border-gray-200 hover:border-green-300 transition-colors cursor-pointer group" onclick="runQuery('insert')">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded">20 (ख) - Insertion</span>
+                            <span class="text-xs text-gray-400 group-hover:text-green-500">Click to Run</span>
+                        </div>
+                        <p class="text-gray-700 font-medium mb-3">नया कर्मचारी (104, 'Karan', 45000, 'IT') जोड़ें।</p>
+                        <div class="hidden group-hover:block text-xs text-gray-500 bg-gray-50 p-2 rounded border border-gray-100">
+                            Query: INSERT INTO Employee VALUES (104, 'Karan', 45000, 'IT');
+                        </div>
+                    </div>
+
+                    <!-- Q20 (c) -->
+                    <div class="bg-white p-5 rounded-lg border border-gray-200 hover:border-yellow-300 transition-colors cursor-pointer group" onclick="runQuery('update')">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-xs font-bold text-yellow-600 bg-yellow-50 px-2 py-1 rounded">20 (ग) - Update</span>
+                            <span class="text-xs text-gray-400 group-hover:text-yellow-500">Click to Run</span>
+                        </div>
+                        <p class="text-gray-700 font-medium mb-3">'Amit' का वेतन बदलकर 58000 करें।</p>
+                        <div class="hidden group-hover:block text-xs text-gray-500 bg-gray-50 p-2 rounded border border-gray-100">
+                            Query: UPDATE Employee SET Salary = 58000 WHERE Name = 'Amit';
+                        </div>
+                    </div>
+
+                    <!-- Q20 (d) -->
+                    <div class="bg-white p-5 rounded-lg border border-gray-200 hover:border-purple-300 transition-colors cursor-pointer group" onclick="runQuery('order')">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-xs font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded">20 (घ) - Sorting</span>
+                            <span class="text-xs text-gray-400 group-hover:text-purple-500">Click to Run</span>
+                        </div>
+                        <p class="text-gray-700 font-medium mb-3">वेतन (Salary) के अनुसार घटते क्रम (Descending) में दिखाएं।</p>
+                        <div class="hidden group-hover:block text-xs text-gray-500 bg-gray-50 p-2 rounded border border-gray-100">
+                            Query: SELECT * FROM Employee ORDER BY Salary DESC;
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-gray-400 py-8 mt-auto">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <p class="mb-2">© 2025-26 Nalanda Public School, Adaksar - CS Department</p>
+            <p class="text-xs">Interactive Solution built for educational purposes.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- Data & State Management ---
+
+        const quizData = [
+            { id: 1, q: "SQL केस संवेदी (case sensitive) भाषा है।", type: "TF", correct: false, note: "SQL keywords (like SELECT) are not case sensitive." },
+            { id: 2, q: "प्राथमिक कुंजी (Primary Key) में NULL मान हो सकता है।", type: "TF", correct: false, note: "Primary Keys must be UNIQUE and NOT NULL." },
+            { id: 3, q: "'ALTER' एक DDL कमांड है।", type: "TF", correct: true, note: "Used to modify table structure (DDL)." },
+            { id: 4, q: "'DISTINCT' कीवर्ड डुप्लिकेट डेटा हटाता है।", type: "TF", correct: true, note: "SELECT DISTINCT removes duplicates from result." },
+            { id: 5, q: "निम्न में से कौन सा DML कमांड है?", type: "MCQ", options: ["CREATE", "ALTER", "INSERT", "DROP"], correctIndex: 2, note: "Insert deals with data manipulation." },
+            { id: 6, q: "टेबल में 'Rows' की कुल संख्या को क्या कहते हैं?", type: "MCQ", options: ["Degree", "Cardinality", "Attribute", "Domain"], correctIndex: 1, note: "Cardinality = Number of Rows. Degree = Number of Columns." },
+            { id: 7, q: "पैटर्न मैचिंग के लिए किस ऑपरेटर का उपयोग होता है?", type: "MCQ", options: ["LIKE", "IS", "IN", "EQUAL"], correctIndex: 0, note: "Used with wildcards like % and _." },
+            { id: 8, q: "कुंजी जो दूसरी टेबल की PK को संदर्भित करती है?", type: "MCQ", options: ["Candidate Key", "Foreign Key", "Alternate Key", "None"], correctIndex: 1, note: "Creates a link between two tables." },
+        ];
+
+        const definitionData = [
+            { term: "SQL Full Form", def: "Structured Query Language" },
+            { term: "ORDER BY", def: "डेटा को आरोही (Ascending) या अवरोही (Descending) क्रम में व्यवस्थित करता है।" },
+            { term: "Attribute", def: "एक टेबल में एक कॉलम (Column) को Attribute या Field भी कहा जाता है।" },
+            { term: "Wildcard _", def: "एकल वर्ण (Single character) को दर्शाने के लिए उपयोग किया जाता है।" },
+            { term: "Tuple", def: "रिलेशनल डेटाबेस टेबल में, एक पंक्ति (Row) या रिकॉर्ड को ट्यूपल कहते हैं।" },
+            { term: "DDL Full Form", def: "Data Definition Language" },
+            { term: "UNIQUE Constraint", def: "सुनिश्चित करता है कि कॉलम में सभी मान अलग-अलग (distinct) हों।" },
+            { term: "Retrieval Command", def: "SELECT कमांड का उपयोग डेटा प्राप्त करने के लिए होता है।" }
+        ];
+
+        // Initial SQL Data
+        const initialEmployees = [
+            { id: 101, name: 'Ravi', salary: 50000, dept: 'HR' },
+            { id: 102, name: 'Suman', salary: 60000, dept: 'IT' },
+            { id: 103, name: 'Amit', salary: 55000, dept: 'HR' }
+        ];
+
+        let currentEmployees = JSON.parse(JSON.stringify(initialEmployees));
+
+        // --- Initialization ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            renderQuiz();
+            renderDefinitions();
+            renderTable(currentEmployees);
+        });
+
+        // --- Chart.js ---
+        function initChart() {
+            const ctx = document.getElementById('topicChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['True/False', 'MCQ', 'Fill Blanks', 'Definitions', 'SQL Queries'],
+                    datasets: [{
+                        data: [4, 4, 4, 4, 4], // Approx distribution based on question count
+                        backgroundColor: [
+                            '#60A5FA', // Blue 400
+                            '#34D399', // Emerald 400
+                            '#FBBF24', // Amber 400
+                            '#A78BFA', // Violet 400
+                            '#F87171'  // Red 400
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10, font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        // --- Quiz Logic ---
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = quizData.map((item, index) => {
+                let optionsHtml = '';
+                
+                if (item.type === 'TF') {
+                    optionsHtml = `
+                        <div class="flex space-x-2 mt-2">
+                            <button onclick="checkAnswer(${index}, true, this)" class="flex-1 py-2 border rounded hover:bg-gray-50 text-sm">True (सत्य)</button>
+                            <button onclick="checkAnswer(${index}, false, this)" class="flex-1 py-2 border rounded hover:bg-gray-50 text-sm">False (असत्य)</button>
+                        </div>`;
+                } else {
+                    optionsHtml = `<div class="grid grid-cols-2 gap-2 mt-2">` + 
+                        item.options.map((opt, optIdx) => 
+                            `<button onclick="checkAnswer(${index}, ${optIdx}, this)" class="py-2 border rounded hover:bg-gray-50 text-sm text-left px-3 truncate">${String.fromCharCode(97+optIdx)}) ${opt}</button>`
+                        ).join('') + `</div>`;
+                }
+
+                return `
+                    <div class="bg-white p-5 rounded-lg border border-gray-100 card-shadow transition hover:shadow-md">
+                        <div class="flex justify-between">
+                            <span class="text-xs font-bold text-gray-400">Q${item.id}</span>
+                            <span class="text-xs px-2 py-0.5 bg-gray-100 rounded text-gray-600">${item.type === 'TF' ? 'True/False' : 'MCQ'}</span>
+                        </div>
+                        <p class="font-medium mt-1 text-gray-800">${item.q}</p>
+                        ${optionsHtml}
+                        <div id="feedback-${index}" class="hidden mt-3 text-sm p-2 rounded bg-gray-50 text-gray-600 border-l-4"></div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function checkAnswer(questionIdx, selectedValue, btnElement) {
+            const q = quizData[questionIdx];
+            const feedbackEl = document.getElementById(`feedback-${questionIdx}`);
+            const parent = btnElement.parentElement; // div containing buttons
+            
+            // Reset styles in this group
+            const buttons = parent.querySelectorAll('button');
+            buttons.forEach(b => {
+                b.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500', 'text-green-800', 'text-red-800');
+                b.disabled = true; // Disable after choice
+            });
+
+            const isCorrect = (q.type === 'TF') ? (selectedValue === q.correct) : (selectedValue === q.correctIndex);
+
+            if (isCorrect) {
+                btnElement.classList.add('bg-green-100', 'border-green-500', 'text-green-800');
+                feedbackEl.innerHTML = `<span class="font-bold text-green-600">Correct!</span> ${q.note}`;
+                feedbackEl.classList.add('border-green-400');
+            } else {
+                btnElement.classList.add('bg-red-100', 'border-red-500', 'text-red-800');
+                // Highlight correct one
+                if (q.type === 'TF') {
+                    buttons[q.correct ? 0 : 1].classList.add('bg-green-100', 'border-green-500');
+                } else {
+                    buttons[q.correctIndex].classList.add('bg-green-100', 'border-green-500');
+                }
+                feedbackEl.innerHTML = `<span class="font-bold text-red-500">Incorrect.</span> ${q.note}`;
+                feedbackEl.classList.add('border-red-400');
+            }
+            feedbackEl.classList.remove('hidden');
+        }
+
+        // --- Concepts Logic ---
+        function renderDefinitions() {
+            const container = document.getElementById('definitions-container');
+            container.innerHTML = definitionData.map(d => `
+                <div class="bg-white p-4 rounded border border-gray-100 hover:border-blue-200 transition group cursor-default">
+                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Term</h4>
+                    <p class="font-bold text-blue-900 mb-2">${d.term}</p>
+                    <div class="h-px bg-gray-100 w-full mb-2"></div>
+                    <p class="text-sm text-gray-600">${d.def}</p>
+                </div>
+            `).join('');
+        }
+
+        // --- SQL Lab Logic ---
+
+        function renderTable(data, highlightFn = null) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400">No data available</td></tr>`;
+                return;
+            }
+
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = 'interactive-row border-b border-gray-50 hover:bg-gray-50 transition-colors';
+                
+                // Check highlight condition
+                if (highlightFn && highlightFn(row)) {
+                    tr.classList.add('highlight-row');
+                }
+                
+                if (row.isNew) {
+                    tr.classList.add('new-row');
+                }
+
+                tr.innerHTML = `
+                    <td class="p-4 font-mono text-gray-500">${row.id}</td>
+                    <td class="p-4 font-medium text-gray-800">${row.name}</td>
+                    <td class="p-4 text-gray-600">${row.salary}</td>
+                    <td class="p-4"><span class="px-2 py-1 bg-gray-100 rounded text-xs text-gray-500">${row.dept}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function runQuery(type) {
+            const display = document.getElementById('query-display-area');
+            
+            // Reset base data for clean simulation every time, unless it's a sequence. 
+            // For this app, let's keep it simple: Reset state first if it's not the Insert/Update flow.
+            // Actually, let's allow cumulative for Insert/Update, but Selection acts on current.
+            
+            if (type === 'select') {
+                // Filter: Salary < 55000
+                display.innerText = "> SELECT * FROM Employee WHERE Salary < 55000;\n\n-- Executed successfully. Highlighted rows match criteria.";
+                // We don't remove rows, just highlight them to show "Selection"
+                renderTable(currentEmployees, (row) => row.salary < 55000);
+            } 
+            else if (type === 'insert') {
+                // Insert Karan
+                const exists = currentEmployees.find(e => e.id === 104);
+                if (!exists) {
+                    currentEmployees.push({ id: 104, name: 'Karan', salary: 45000, dept: 'IT', isNew: true });
+                    display.innerText = "> INSERT INTO Employee VALUES (104, 'Karan', 45000, 'IT');\n\n-- 1 Row Affected. New record added.";
+                    renderTable(currentEmployees);
+                } else {
+                    display.innerText = "-- Error: Duplicate Entry for Key '104'. Reset table to try again.";
+                }
+            } 
+            else if (type === 'update') {
+                // Update Amit
+                const amit = currentEmployees.find(e => e.name === 'Amit');
+                if (amit) {
+                    amit.salary = 58000;
+                    amit.isNew = true; // reusing class for highlight effect
+                    display.innerText = "> UPDATE Employee SET Salary = 58000 WHERE Name = 'Amit';\n\n-- 1 Row Affected. Amit's salary changed.";
+                    renderTable(currentEmployees);
+                }
+            } 
+            else if (type === 'order') {
+                // Sort Descending by Salary
+                currentEmployees.sort((a, b) => b.salary - a.salary);
+                display.innerText = "> SELECT * FROM Employee ORDER BY Salary DESC;\n\n-- Table re-ordered by Salary (High to Low).";
+                renderTable(currentEmployees);
+            }
+        }
+
+        function resetTable() {
+            currentEmployees = JSON.parse(JSON.stringify(initialEmployees));
+            document.getElementById('query-display-area').innerText = "// Waiting for query execution...";
+            renderTable(currentEmployees);
+        }
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
