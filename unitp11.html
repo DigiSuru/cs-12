@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class 11 CS: 3rd Unit Test Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Inter', 'Noto Sans Devanagari', sans-serif;
+            background-color: #f3f4f6;
+        }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            height: 300px;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        .code-block {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background-color: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    <!-- Chosen Palette: Indigo & Slate (Academic/Professional) -->
+    <!-- Application Structure Plan: 
+         1. Landing Dashboard: Overview of the exam, instructions, and marks distribution chart.
+         2. Exam Interface: A tabbed or stepped interface separating Sections A, B, and C.
+            - Section A: Interactive form elements (Radio, Checkbox, Input) for auto-grading.
+            - Section B & C: Flashcard style questions with "Reveal Model Answer" functionality for self-study.
+         3. Results/Analysis: A summary view showing performance in Section A and providing full review for B & C.
+         Why: This structure allows students to simulate the exam environment while also serving as a study guide.
+    -->
+    <!-- Visualization & Content Choices:
+         - Marks Distribution (Doughnut Chart): To visualize weightage of sections immediately.
+         - Score Analysis (Bar Chart): To compare user score vs total in Section A.
+         - Code Blocks: For Python syntax highlighting.
+         - Interactive Cards: For Section B/C to prevent cognitive overload.
+         - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+</head>
+<body class="text-slate-800 h-screen flex flex-col overflow-hidden">
+
+    <!-- Top Navigation -->
+    <header class="bg-indigo-700 text-white shadow-lg z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-laptop-code text-xl"></i>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">Class 11 CS</h1>
+                    <p class="text-xs text-indigo-200">3rd Unit Test Portal</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div id="timer-display" class="hidden bg-indigo-800 px-3 py-1 rounded-full font-mono font-bold border border-indigo-500 flex items-center gap-2">
+                    <i class="fa-regular fa-clock text-xs"></i>
+                    <span id="time-remaining">40:00</span>
+                </div>
+                <button onclick="app.resetApp()" class="text-sm hover:text-indigo-200 transition"><i class="fa-solid fa-home"></i> Home</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main id="main-container" class="flex-1 overflow-y-auto p-4 sm:p-6 relative">
+        
+        <!-- VIEW 1: LANDING DASHBOARD -->
+        <div id="landing-view" class="max-w-5xl mx-auto fade-in">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                
+                <!-- Exam Info Card -->
+                <div class="md:col-span-8 space-y-6">
+                    <div class="bg-white rounded-2xl shadow-sm p-8 border-l-4 border-indigo-500">
+                        <h2 class="text-3xl font-bold text-slate-800 mb-2">तृतीय इकाई परीक्षा (3rd Unit Test)</h2>
+                        <div class="flex flex-wrap gap-4 text-sm text-slate-500 mb-6">
+                            <span class="flex items-center gap-1"><i class="fa-solid fa-book"></i> कंप्यूटर विज्ञान (CS)</span>
+                            <span class="flex items-center gap-1"><i class="fa-solid fa-hourglass"></i> 40 मिनट</span>
+                            <span class="flex items-center gap-1"><i class="fa-solid fa-star"></i> 10 अंक</span>
+                        </div>
+                        
+                        <div class="bg-slate-50 rounded-xl p-6 mb-6">
+                            <h3 class="font-semibold text-slate-700 mb-3 border-b pb-2">सामान्य निर्देश (General Instructions):</h3>
+                            <ul class="list-disc list-inside space-y-2 text-slate-600 text-sm">
+                                <li>सभी प्रश्न अनिवार्य हैं (All questions are compulsory).</li>
+                                <li>प्रश्न पत्र तीन खंडों में विभाजित है: खंड-अ, खंड-ब और खंड-स।</li>
+                                <li>तकनीकी शब्दों (Technical terms) का प्रयोग अंग्रेजी में भी मान्य है।</li>
+                                <li><strong>Interactive Mode:</strong> Section A is auto-graded. Sections B & C include model answers for self-review.</li>
+                            </ul>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <button onclick="app.startExam()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-play"></i> परीक्षा शुरू करें (Start Test)
+                            </button>
+                            <button onclick="app.showStudyMode()" class="flex-1 bg-white border-2 border-slate-200 hover:border-indigo-500 text-slate-700 font-bold py-3 px-6 rounded-xl transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-glasses"></i> अध्ययन मोड (Study Mode)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Topics Covered -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-white p-4 rounded-xl shadow-sm text-center">
+                            <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                                <i class="fa-solid fa-list"></i>
+                            </div>
+                            <h4 class="font-semibold text-sm">Lists</h4>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm text-center">
+                            <div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                                <i class="fa-solid fa-code"></i>
+                            </div>
+                            <h4 class="font-semibold text-sm">Tuples</h4>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm text-center">
+                            <div class="w-10 h-10 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                                <i class="fa-solid fa-book-open"></i>
+                            </div>
+                            <h4 class="font-semibold text-sm">Dictionaries</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Panel -->
+                <div class="md:col-span-4 space-y-6">
+                    <div class="bg-white rounded-2xl shadow-sm p-6">
+                        <h3 class="font-bold text-slate-700 mb-4 text-center">अंक वितरण (Marks Distribution)</h3>
+                        <div class="chart-container" style="height: 200px;">
+                            <canvas id="distributionChart"></canvas>
+                        </div>
+                        <div class="mt-4 space-y-2 text-sm">
+                            <div class="flex justify-between items-center">
+                                <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-indigo-500"></span> खंड-अ (Objective)</span>
+                                <span class="font-bold">3 Marks</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-400"></span> खंड-ब (Short)</span>
+                                <span class="font-bold">5 Marks</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-400"></span> खंड-स (Essay)</span>
+                                <span class="font-bold">2 Marks</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: EXAM INTERFACE -->
+        <div id="exam-view" class="hidden max-w-4xl mx-auto fade-in h-full flex flex-col">
+            <!-- Progress Bar -->
+            <div class="mb-6">
+                <div class="flex justify-between text-xs font-semibold text-slate-500 mb-1">
+                    <span>प्रगति (Progress)</span>
+                    <span id="progress-text">0%</span>
+                </div>
+                <div class="w-full bg-slate-200 rounded-full h-2.5">
+                    <div id="progress-bar" class="bg-indigo-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Sections Navigation -->
+            <div class="flex space-x-2 mb-4 overflow-x-auto pb-2">
+                <button onclick="app.switchSection('A')" id="tab-A" class="section-tab px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium text-sm whitespace-nowrap">खंड-अ (Section A)</button>
+                <button onclick="app.switchSection('B')" id="tab-B" class="section-tab px-4 py-2 rounded-lg bg-white text-slate-600 hover:bg-slate-100 font-medium text-sm whitespace-nowrap">खंड-ब (Section B)</button>
+                <button onclick="app.switchSection('C')" id="tab-C" class="section-tab px-4 py-2 rounded-lg bg-white text-slate-600 hover:bg-slate-100 font-medium text-sm whitespace-nowrap">खंड-स (Section C)</button>
+            </div>
+
+            <!-- Scrollable Question Area -->
+            <div class="flex-1 overflow-y-auto pr-2" id="question-container">
+                <!-- Questions injected by JS -->
+            </div>
+
+            <!-- Action Bar -->
+            <div class="mt-4 pt-4 border-t bg-white sticky bottom-0 flex justify-between items-center p-4 rounded-xl shadow-lg">
+                <button onclick="app.prevSection()" class="text-slate-500 hover:text-indigo-600 font-medium px-4 py-2 rounded-lg hover:bg-slate-50 transition">
+                    <i class="fa-solid fa-arrow-left"></i> पिछला (Back)
+                </button>
+                <button onclick="app.handleSubmit()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-8 rounded-lg shadow-md transition">
+                    सबमिट करें (Submit) <i class="fa-solid fa-check"></i>
+                </button>
+                <button onclick="app.nextSection()" class="text-slate-500 hover:text-indigo-600 font-medium px-4 py-2 rounded-lg hover:bg-slate-50 transition">
+                    अगला (Next) <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW 3: RESULTS & REVIEW -->
+        <div id="result-view" class="hidden max-w-4xl mx-auto fade-in pb-10">
+            <div class="text-center mb-10">
+                <div class="inline-block p-4 rounded-full bg-indigo-100 text-indigo-700 mb-4 text-4xl">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-slate-800">परिणाम विश्लेषण (Result Analysis)</h2>
+                <p class="text-slate-500">आपने परीक्षा पूरी कर ली है। नीचे अपने उत्तरों की समीक्षा करें।</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Score Card for Section A -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-indigo-100">
+                    <h3 class="font-bold text-slate-700 mb-4">खंड-अ स्कोर (Section A Score)</h3>
+                    <div class="flex items-center justify-between">
+                        <div class="text-center">
+                            <span id="score-display" class="block text-4xl font-bold text-indigo-600">0/3</span>
+                            <span class="text-xs text-slate-400">Total Marks</span>
+                        </div>
+                        <div class="chart-container" style="height: 120px; width: 120px; margin:0;">
+                            <canvas id="scoreChart"></canvas>
+                        </div>
+                    </div>
+                    <p id="score-message" class="mt-4 text-sm text-slate-600 text-center bg-slate-50 p-2 rounded-lg">
+                        <!-- Message injected by JS -->
+                    </p>
+                </div>
+
+                <!-- Self Review Info -->
+                <div class="bg-indigo-600 p-6 rounded-2xl shadow-sm text-white">
+                    <h3 class="font-bold text-indigo-100 mb-2">सब्जेक्टिव समीक्षा (Subjective Review)</h3>
+                    <p class="text-indigo-200 text-sm mb-4">
+                        खंड-ब और खंड-स के लिए स्वतः ग्रेडिंग उपलब्ध नहीं है। कृपया नीचे दिए गए 'Model Answers' के साथ अपने उत्तरों की तुलना करें।
+                    </p>
+                    <div class="flex gap-2 text-sm">
+                        <div class="bg-white/10 px-3 py-1 rounded">खंड-ब: 5 अंक</div>
+                        <div class="bg-white/10 px-3 py-1 rounded">खंड-स: 2 अंक</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Review Accordion -->
+            <div id="review-container" class="space-y-6">
+                <!-- Review items injected by JS -->
+            </div>
+            
+            <div class="mt-8 text-center">
+                <button onclick="location.reload()" class="bg-slate-800 text-white px-6 py-3 rounded-lg hover:bg-slate-700 transition">
+                    <i class="fa-solid fa-rotate-right"></i> रीसेट करें (Reset Exam)
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Data Structure based on Source File
+        const examData = {
+            sectionA: [
+                { id: 1, type: 'tf', q: "लिस्ट (List) एक परिवर्तनीय (mutable) डेटा प्रकार है।", ans: true },
+                { id: 2, type: 'tf', q: "ट्यूपल (Tuple) के तत्वों को बदला जा सकता है।", ans: false },
+                { id: 3, type: 'tf', q: "डिक्शनरी (Dictionary) में कुंजी (Key) अद्वितीय (unique) होनी चाहिए।", ans: true },
+                { id: 4, type: 'tf', q: "स्ट्रिंग (String) में इंडेक्सिंग 1 से शुरू होती है।", ans: false }, // Python starts at 0
+                { id: 5, type: 'mcq', q: "निम्न में से कौन सा ट्यूपल (Tuple) को दर्शाता है?", options: ["`[1, 2, 3]`", "`(1, 2, 3)`", "`{1, 2, 3}`", "None"], ans: 1 }, // Index 1 is (b)
+                { id: 6, type: 'mcq', q: "लिस्ट के अंत में एक आइटम जोड़ने के लिए किस विधि का उपयोग किया जाता है?", options: ["extend()", "add()", "append()", "insert()"], ans: 2 }, // Index 2 is append
+                { id: 7, type: 'mcq', q: "डिक्शनरी से किसी आइटम को हटाने के लिए किस कीवर्ड का उपयोग किया जाता है?", options: ["remove", "delete", "del", "drop"], ans: 2 }, // Index 2 is del
+                { id: 8, type: 'mcq', q: "`len([10, 20, 30])` का आउटपुट क्या होगा?", options: ["3", "30", "2", "Error"], ans: 0 }, // Index 0 is 3
+                { id: 9, type: 'fib', q: "डिक्शनरी में डेटा ________ के रूप में संग्रहीत होता है।", ans: ["key-value", "key value", "key:value"] },
+                { id: 10, type: 'fib', q: "लिस्ट को रिवर्स (उल्टा) करने के लिए ________ फ़ंक्शन का उपयोग किया जाता है।", ans: ["reverse()", "reverse"] },
+                { id: 11, type: 'fib', q: "`L = [1, 2, 3]` में `L[1]` का मान ________ है।", ans: ["2"] },
+                { id: 12, type: 'fib', q: "ट्यूपल बनाने के लिए ________ ब्रैकेट का उपयोग किया जाता है।", ans: ["round", "()", "parentheses", "गोल"] }
+            ],
+            sectionB: [
+                { id: 13, q: "'Mutable' (परिवर्तनीय) और 'Immutable' (अपरिवर्तनीय) का अर्थ स्पष्ट करें。", model: "Mutable: Objects whose value can change after creation (e.g., Lists, Dictionaries).\nImmutable: Objects whose value cannot change once created (e.g., Tuples, Strings, Integers)." },
+                { id: 14, q: "एक खाली डिक्शनरी बनाने के लिए पायथन कोड लिखिए।", model: "my_dict = {}\n# OR\nmy_dict = dict()", isCode: true },
+                { id: 15, q: "नेस्टेड लिस्ट (Nested List) क्या है?", model: "A list inside another list is called a Nested List.\nExample: L = [1, 2, [3, 4], 5]" },
+                { id: 16, q: "`pop()` मेथड का क्या कार्य है?", model: "The pop() method removes the item at the given index from the list and returns the removed item. If no index is specified, it removes the last item." },
+                { id: 17, q: "लिस्ट (List) और ट्यूपल (Tuple) के बीच कोई दो मुख्य अंतर लिखिए।", model: "1. Mutability: Lists are mutable; Tuples are immutable.\n2. Syntax: Lists use square brackets []; Tuples use parentheses ()." },
+                { id: 18, q: "निम्नलिखित कोड का आउटपुट क्या होगा?", code: 'D = {"Mon": 1, "Tue": 2, "Wed": 3}\nprint("Tue" in D)\nprint(D.get("Fri"))', model: "True\nNone\n\nExplanation:\n'Tue' is a key in D, so it returns True.\n'Fri' is not in D, get() returns None by default." },
+                { id: 19, q: "पायथन में लिस्ट स्लाइसिंग (Slicing) को एक उदाहरण सहित समझाइए।", model: "Slicing retrieves a subset of the list.\nSyntax: List[start:stop:step]\nExample: L = [10, 20, 30, 40]\nprint(L[1:3]) # Output: [20, 30]" }
+            ],
+            sectionC: [
+                { id: 20, q: "एक पायथन प्रोग्राम लिखिए जो उपयोगकर्ता से 5 छात्रों के नाम और उनके अंक (marks) ले और उन्हें एक डिक्शनरी में स्टोर करे। अंत में डिक्शनरी को प्रिंट करें।", model: "student_marks = {}\n\nfor i in range(5):\n    name = input('Enter student name: ')\n    marks = int(input('Enter marks: '))\n    student_marks[name] = marks\n\nprint('Student Dictionary:', student_marks)", isCode: true },
+                { id: 21, q: "(OR) लिस्ट के किन्हीं चार बिल्ट-इन फंक्शन्स (Built-in functions) की व्याख्या उदाहरण सहित करें。", model: "1. append(x): Adds x to the end.\n2. sort(): Sorts the list in ascending order.\n3. remove(x): Removes the first occurrence of x.\n4. count(x): Returns the number of times x appears in the list." }
+            ]
+        };
+
+        const app = {
+            currentSection: 'A',
+            userAnswers: { A: {}, B: {}, C: {} },
+            timerInterval: null,
+            totalTime: 40 * 60, // 40 minutes in seconds
+
+            init: function() {
+                this.renderLandingCharts();
+            },
+
+            renderLandingCharts: function() {
+                const ctx = document.getElementById('distributionChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Section A (Obj)', 'Section B (Short)', 'Section C (Essay)'],
+                        datasets: [{
+                            data: [3, 5, 2],
+                            backgroundColor: ['#6366f1', '#60a5fa', '#34d399'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+            },
+
+            startExam: function() {
+                document.getElementById('landing-view').classList.add('hidden');
+                document.getElementById('exam-view').classList.remove('hidden');
+                document.getElementById('timer-display').classList.remove('hidden');
+                this.startTimer();
+                this.switchSection('A');
+            },
+
+            showStudyMode: function() {
+                // Simulates exam finished state but allows interaction
+                this.startExam();
+                clearInterval(this.timerInterval);
+                document.getElementById('timer-display').classList.add('hidden');
+                // Could add logic to show "Reveal Answer" buttons immediately in exam view if needed
+                // For now, let's just treat it as taking the test without a timer
+            },
+
+            startTimer: function() {
+                const display = document.getElementById('time-remaining');
+                this.timerInterval = setInterval(() => {
+                    this.totalTime--;
+                    const m = Math.floor(this.totalTime / 60);
+                    const s = this.totalTime % 60;
+                    display.textContent = `${m}:${s < 10 ? '0'+s : s}`;
+                    if (this.totalTime <= 0) {
+                        clearInterval(this.timerInterval);
+                        alert("Time is up!");
+                        this.handleSubmit();
+                    }
+                }, 1000);
+            },
+
+            switchSection: function(sec) {
+                this.currentSection = sec;
+                
+                // Update Tabs
+                ['A', 'B', 'C'].forEach(s => {
+                    const btn = document.getElementById(`tab-${s}`);
+                    if(s === sec) {
+                        btn.classList.remove('bg-white', 'text-slate-600', 'hover:bg-slate-100');
+                        btn.classList.add('bg-indigo-600', 'text-white');
+                    } else {
+                        btn.classList.add('bg-white', 'text-slate-600', 'hover:bg-slate-100');
+                        btn.classList.remove('bg-indigo-600', 'text-white');
+                    }
+                });
+
+                this.renderQuestions(sec);
+                this.updateProgressBar();
+            },
+
+            renderQuestions: function(sec) {
+                const container = document.getElementById('question-container');
+                container.innerHTML = '';
+
+                let questions = [];
+                if (sec === 'A') questions = examData.sectionA;
+                if (sec === 'B') questions = examData.sectionB;
+                if (sec === 'C') questions = examData.sectionC;
+
+                questions.forEach((q, index) => {
+                    const card = document.createElement('div');
+                    card.className = "bg-white p-6 rounded-xl shadow-sm border border-slate-100 mb-4 transition hover:shadow-md";
+                    
+                    let content = `<div class="flex gap-3 mb-3">
+                        <span class="font-bold text-indigo-600 bg-indigo-50 w-8 h-8 flex items-center justify-center rounded-lg text-sm">${q.id}</span>
+                        <div class="flex-1">
+                            <p class="text-slate-700 font-medium text-lg">${this.formatText(q.q)}</p>
+                            ${q.code ? `<div class="code-block mt-2 text-sm">${q.code}</div>` : ''}
+                        </div>
+                    </div>`;
+
+                    // Render Inputs based on type
+                    content += `<div class="ml-11">`;
+                    
+                    if (sec === 'A') {
+                        if (q.type === 'tf') {
+                            content += `
+                                <div class="flex gap-4">
+                                    <label class="flex items-center space-x-2 cursor-pointer p-3 border rounded-lg hover:bg-slate-50 w-full md:w-auto">
+                                        <input type="radio" name="q${q.id}" value="true" onchange="app.saveAnswer('A', ${q.id}, true)" ${this.userAnswers.A[q.id] === true ? 'checked' : ''} class="w-4 h-4 text-indigo-600">
+                                        <span>सत्य (True)</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 cursor-pointer p-3 border rounded-lg hover:bg-slate-50 w-full md:w-auto">
+                                        <input type="radio" name="q${q.id}" value="false" onchange="app.saveAnswer('A', ${q.id}, false)" ${this.userAnswers.A[q.id] === false ? 'checked' : ''} class="w-4 h-4 text-indigo-600">
+                                        <span>असत्य (False)</span>
+                                    </label>
+                                </div>
+                            `;
+                        } else if (q.type === 'mcq') {
+                            content += `<div class="grid grid-cols-1 md:grid-cols-2 gap-3">`;
+                            q.options.forEach((opt, idx) => {
+                                content += `
+                                    <label class="flex items-center space-x-3 cursor-pointer p-3 border rounded-lg hover:bg-slate-50">
+                                        <input type="radio" name="q${q.id}" value="${idx}" onchange="app.saveAnswer('A', ${q.id}, ${idx})" ${this.userAnswers.A[q.id] === idx ? 'checked' : ''} class="w-4 h-4 text-indigo-600">
+                                        <span class="text-sm">${this.formatText(opt)}</span>
+                                    </label>
+                                `;
+                            });
+                            content += `</div>`;
+                        } else if (q.type === 'fib') {
+                            content += `
+                                <input type="text" placeholder="Type answer here..." 
+                                    value="${this.userAnswers.A[q.id] || ''}" 
+                                    oninput="app.saveAnswer('A', ${q.id}, this.value)"
+                                    class="w-full md:w-1/2 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50">
+                            `;
+                        }
+                    } else {
+                        // Section B and C (Subjective)
+                        content += `
+                            <textarea placeholder="Write your answer or code here..." 
+                                oninput="app.saveAnswer('${sec}', ${q.id}, this.value)"
+                                class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50 h-32 font-mono text-sm">${this.userAnswers[sec][q.id] || ''}</textarea>
+                        `;
+                    }
+                    content += `</div>`;
+                    
+                    card.innerHTML = content;
+                    container.appendChild(card);
+                });
+            },
+
+            formatText: function(text) {
+                // Simple markdown-like formatter for code ticks
+                return text.replace(/`([^`]+)`/g, '<span class="font-mono text-pink-600 bg-pink-50 px-1 rounded mx-1">$1</span>');
+            },
+
+            saveAnswer: function(sec, id, val) {
+                this.userAnswers[sec][id] = val;
+                this.updateProgressBar();
+            },
+
+            updateProgressBar: function() {
+                // Calculate progress based on answered fields
+                const totalQ = examData.sectionA.length + examData.sectionB.length + examData.sectionC.length;
+                let answered = 0;
+                
+                ['A', 'B', 'C'].forEach(s => {
+                    answered += Object.keys(this.userAnswers[s]).length;
+                });
+                
+                const pct = Math.round((answered / totalQ) * 100);
+                document.getElementById('progress-bar').style.width = `${pct}%`;
+                document.getElementById('progress-text').innerText = `${pct}%`;
+            },
+
+            prevSection: function() {
+                if(this.currentSection === 'B') this.switchSection('A');
+                else if(this.currentSection === 'C') this.switchSection('B');
+            },
+
+            nextSection: function() {
+                if(this.currentSection === 'A') this.switchSection('B');
+                else if(this.currentSection === 'B') this.switchSection('C');
+            },
+
+            handleSubmit: function() {
+                clearInterval(this.timerInterval);
+                document.getElementById('exam-view').classList.add('hidden');
+                document.getElementById('result-view').classList.remove('hidden');
+                document.getElementById('timer-display').classList.add('hidden');
+                this.calculateResults();
+            },
+
+            calculateResults: function() {
+                let scoreA = 0;
+                let totalA = 3; // Total marks for A
+                const qWeight = 0.25;
+
+                // Grade Section A
+                examData.sectionA.forEach(q => {
+                    const userAns = this.userAnswers.A[q.id];
+                    
+                    if (q.type === 'tf' || q.type === 'mcq') {
+                        if (userAns === q.ans) scoreA += qWeight;
+                    } else if (q.type === 'fib') {
+                        if (userAns && q.ans.some(a => userAns.toLowerCase().trim() === a.toLowerCase())) {
+                            scoreA += qWeight;
+                        }
+                    }
+                });
+
+                // Display Score A
+                document.getElementById('score-display').innerText = `${scoreA}/${totalA}`;
+                
+                // Score Message
+                const msgEl = document.getElementById('score-message');
+                if (scoreA === 3) msgEl.innerText = "उत्कृष्ट! (Excellent!)";
+                else if (scoreA > 1.5) msgEl.innerText = "अच्छा प्रयास! (Good Effort)";
+                else msgEl.innerText = "अभ्यास की आवश्यकता है। (Needs Practice)";
+
+                // Render Score Chart
+                const ctx = document.getElementById('scoreChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Your Score', 'Total'],
+                        datasets: [{
+                            label: 'Marks',
+                            data: [scoreA, totalA],
+                            backgroundColor: ['#6366f1', '#e2e8f0'],
+                            borderRadius: 5
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+
+                this.renderReview();
+            },
+
+            renderReview: function() {
+                const container = document.getElementById('review-container');
+                container.innerHTML = '';
+
+                // Combine all questions for review
+                const allSections = [
+                    { name: 'Section A (Objective)', questions: examData.sectionA, secCode: 'A' },
+                    { name: 'Section B (Short Answer)', questions: examData.sectionB, secCode: 'B' },
+                    { name: 'Section C (Programming)', questions: examData.sectionC, secCode: 'C' }
+                ];
+
+                allSections.forEach(sec => {
+                    const secHeader = document.createElement('h3');
+                    secHeader.className = "text-xl font-bold text-slate-800 mt-8 mb-4 border-b pb-2";
+                    secHeader.innerText = sec.name;
+                    container.appendChild(secHeader);
+
+                    sec.questions.forEach(q => {
+                        const userAns = this.userAnswers[sec.secCode][q.id] || 'Not answered';
+                        
+                        let displayAns = userAns;
+                        // Format MCQ/TF user answer for display
+                        if (sec.secCode === 'A') {
+                            if (q.type === 'mcq' && typeof userAns === 'number') displayAns = this.formatText(q.options[userAns]);
+                            if (q.type === 'tf') displayAns = userAns ? "True" : "False";
+                        }
+
+                        // Determine Correct Answer String
+                        let correctAnsStr = "";
+                        if (sec.secCode === 'A') {
+                            if (q.type === 'mcq') correctAnsStr = this.formatText(q.options[q.ans]);
+                            else if (q.type === 'tf') correctAnsStr = q.ans ? "True" : "False";
+                            else correctAnsStr = q.ans.join(" / ");
+                        } else {
+                            correctAnsStr = q.model;
+                        }
+
+                        const card = document.createElement('div');
+                        card.className = "bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-4";
+                        
+                        let html = `
+                            <div class="flex gap-2 mb-4">
+                                <span class="text-indigo-600 font-bold">Q${q.id}.</span>
+                                <div class="flex-1">
+                                    <p class="font-medium text-slate-800">${this.formatText(q.q)}</p>
+                                    ${q.code ? `<div class="code-block mt-2 text-xs">${q.code}</div>` : ''}
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div class="p-3 bg-slate-50 rounded-lg border border-slate-100">
+                                    <span class="block text-xs font-bold text-slate-400 uppercase mb-1">Your Answer</span>
+                                    <div class="text-slate-700 font-mono whitespace-pre-wrap">${displayAns}</div>
+                                </div>
+                                <div class="p-3 bg-emerald-50 rounded-lg border border-emerald-100">
+                                    <span class="block text-xs font-bold text-emerald-600 uppercase mb-1">Model Answer / Correct Option</span>
+                                    <div class="text-emerald-800 font-mono whitespace-pre-wrap ${q.isCode ? 'code-block' : ''}">${correctAnsStr}</div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        card.innerHTML = html;
+                        container.appendChild(card);
+                    });
+                });
+            },
+            
+            resetApp: function() {
+                location.reload();
+            }
+        };
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+    </script>
+</body>
+</html>
