@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>इंटरैक्टिव परीक्षा समीक्षा: SS-03 कंप्यूटर विज्ञान 2024</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans Devanagari', 'Inter', sans-serif; background-color: #fdfbf7; color: #1f2937; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 300px; max-height: 400px; }
+        @media (min-width: 768px) { .chart-container { height: 350px; } }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .transition-all-300 { transition: all 0.3s ease-in-out; }
+        .active-nav { border-bottom: 2px solid #ea580c; color: #ea580c; font-weight: 600; }
+        .option-btn.correct { background-color: #d1fae5; border-color: #10b981; color: #065f46; }
+        .option-btn.incorrect { background-color: #fee2e2; border-color: #ef4444; color: #991b1b; }
+        /* Hide scrollbar for clean horizontal scroll areas if needed */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl mr-2">🎓</span>
+                    <div>
+                        <h1 class="text-xl font-bold text-slate-800 leading-tight">परीक्षा मास्टर: CS 2024</h1>
+                        <p class="text-xs text-slate-500">SS-03 कंप्यूटर विज्ञान (ऐच्छिक)</p>
+                    </div>
+                </div>
+                <!-- Desktop Nav -->
+                <nav class="hidden md:flex space-x-8">
+                    <button onclick="switchTab('quiz')" id="nav-quiz" class="active-nav py-5 px-1 text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors">प्रश्नोत्तरी (Quiz)</button>
+                    <button onclick="switchTab('concepts')" id="nav-concepts" class="py-5 px-1 text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors">अवधारणाएँ (Concepts)</button>
+                    <button onclick="switchTab('algolab')" id="nav-algolab" class="py-5 px-1 text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors">एल्गोरिदम लैब</button>
+                    <button onclick="switchTab('systems')" id="nav-systems" class="py-5 px-1 text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors">डीबी और नेटवर्क</button>
+                </nav>
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden">
+                    <button onclick="toggleMobileMenu()" class="text-slate-600 focus:outline-none">
+                        <span class="text-2xl">☰</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Nav Panel -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100">
+            <div class="flex flex-col px-4 pt-2 pb-4 space-y-1">
+                <button onclick="switchTab('quiz'); toggleMobileMenu()" class="text-left py-2 text-slate-600 font-medium">प्रश्नोत्तरी (Quiz)</button>
+                <button onclick="switchTab('concepts'); toggleMobileMenu()" class="text-left py-2 text-slate-600 font-medium">अवधारणाएँ (Concepts)</button>
+                <button onclick="switchTab('algolab'); toggleMobileMenu()" class="text-left py-2 text-slate-600 font-medium">एल्गोरिदम लैब</button>
+                <button onclick="switchTab('systems'); toggleMobileMenu()" class="text-left py-2 text-slate-600 font-medium">डीबी और नेटवर्क</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <!-- SECTION 1: QUIZ & BASICS -->
+        <section id="quiz-section" class="space-y-8 animate-fade-in">
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-100">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">ज्ञान परीक्षण (Knowledge Check)</h2>
+                <p class="text-slate-600 mb-6 leading-relaxed">
+                    परीक्षा के **खण्ड 'अ' (Section A)** से मौलिक अवधारणाओं की अपनी समझ का परीक्षण करें। इस भाग में पायथन अपवाद, फाइल हैंडलिंग, डेटा संरचना और मूल SQL/नेटवर्क परिभाषाएँ शामिल हैं। तत्काल फीडबैक देखने के लिए एक उत्तर चुनें।
+                </p>
+                
+                <!-- Scoreboard -->
+                <div class="flex justify-between items-center bg-slate-50 rounded-lg p-4 mb-6">
+                    <div>
+                        <span class="text-sm font-semibold text-slate-500 uppercase tracking-wide">वर्तमान स्कोर</span>
+                        <div class="text-3xl font-bold text-orange-600" id="score-display">0 / 0</div>
+                    </div>
+                    <button onclick="resetQuiz()" class="text-sm text-slate-500 hover:text-orange-600 underline">क्विज़ रीसेट करें</button>
+                </div>
+
+                <!-- Quiz Container -->
+                <div id="quiz-container" class="grid grid-cols-1 gap-6">
+                    <!-- Questions injected by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: CONCEPTS -->
+        <section id="concepts-section" class="hidden space-y-8 animate-fade-in">
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-100">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">अवधारणा अन्वेषक (Concept Explorer)</h2>
+                <p class="text-slate-600 mb-6 leading-relaxed">
+                    **खण्ड 'ब' और 'स' (Section B & C)** के लिए आवश्यक परिभाषाएँ और संक्षिप्त उत्तर देखें। समाधान कुंजी से विस्तृत उत्तर प्रकट करने के लिए किसी भी कार्ड पर क्लिक करें।
+                </p>
+
+                <!-- Filter/Tabs for Concepts -->
+                <div class="flex space-x-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
+                    <button onclick="filterConcepts('all')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-full text-sm font-medium transition-colors">सभी (All)</button>
+                    <button onclick="filterConcepts('Python')" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-4 py-2 rounded-full text-sm font-medium transition-colors">पायथन (Python)</button>
+                    <button onclick="filterConcepts('DS')" class="bg-purple-100 hover:bg-purple-200 text-purple-800 px-4 py-2 rounded-full text-sm font-medium transition-colors">डेटा संरचना (DS)</button>
+                    <button onclick="filterConcepts('SQL')" class="bg-green-100 hover:bg-green-200 text-green-800 px-4 py-2 rounded-full text-sm font-medium transition-colors">SQL</button>
+                </div>
+
+                <!-- Cards Grid -->
+                <div id="concepts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Cards injected by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: ALGORITHM LAB -->
+        <section id="algolab-section" class="hidden space-y-8 animate-fade-in">
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-100">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">एल्गोरिदम प्रयोगशाला</h2>
+                <p class="text-slate-600 mb-6 leading-relaxed">
+                    **खण्ड 'द' (Section D)** की समस्याओं के लिए इंटरैक्टिव प्रदर्शन। समय जटिलता (Time Complexity) को देखें, रैखिक खोज (Linear Search) के चरणों को समझें, और इनफिक्स (Infix) व्यंजकों को पोस्टफिक्स (Postfix) में बदलें।
+                </p>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Time Complexity Visualization -->
+                    <div class="bg-slate-50 rounded-xl p-6 border border-slate-200">
+                        <div class="mb-4">
+                            <h3 class="text-lg font-bold text-slate-800 flex items-center">
+                                <span class="mr-2">📈</span> समय जटिलता (Time Complexity) - Q17
+                            </h3>
+                            <p class="text-sm text-slate-600 mt-1">विकास दर की तुलना: O(1), O(log n), O(n), O(n²).</p>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="complexityChart"></canvas>
+                        </div>
+                        <div class="mt-4 text-sm text-slate-500 bg-white p-3 rounded border border-slate-100">
+                            <strong>नोट:</strong> प्रश्न 17 पूछता है "एल्गोरिदम की समय जटिलता क्या होती है?"। यह इनपुट आकार (n) के फलन के रूप में लगने वाला कम्प्यूटेशनल समय है।
+                        </div>
+                    </div>
+
+                    <!-- Linear Search Simulation -->
+                    <div class="bg-slate-50 rounded-xl p-6 border border-slate-200 flex flex-col">
+                        <div class="mb-4">
+                            <h3 class="text-lg font-bold text-slate-800 flex items-center">
+                                <span class="mr-2">🔍</span> रैखिक खोज (Linear Search) सिमुलेटर - Q20
+                            </h3>
+                            <p class="text-sm text-slate-600 mt-1">सूची [15, 4, 27, 20, 31, 9] में कुंजी तत्व <strong>20</strong> को खोजें।</p>
+                        </div>
+                        
+                        <div class="flex-grow flex flex-col justify-center items-center space-y-6">
+                            <!-- Array Visual -->
+                            <div id="ls-array" class="flex flex-wrap gap-2 justify-center">
+                                <!-- Array Elements injected by JS -->
+                            </div>
+                            
+                            <!-- Controls -->
+                            <div class="flex space-x-4">
+                                <button onclick="lsStep()" id="ls-next-btn" class="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg shadow-md transition-colors font-medium">अगला चरण (Next Step)</button>
+                                <button onclick="lsReset()" class="bg-white border border-slate-300 text-slate-600 px-6 py-2 rounded-lg hover:bg-slate-50 transition-colors">रीसेट (Reset)</button>
+                            </div>
+
+                            <!-- Log -->
+                            <div id="ls-log" class="w-full bg-white p-4 rounded-lg border border-slate-200 h-24 overflow-y-auto text-sm font-mono text-slate-700 shadow-inner">
+                                खोजने के लिए 'अगला चरण' पर क्लिक करें...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Infix to Postfix Converter -->
+                    <div class="col-span-1 lg:col-span-2 bg-slate-50 rounded-xl p-6 border border-slate-200">
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center mb-4">
+                            <span class="mr-2">🔄</span> इनफिक्स से पोस्टफिक्स कन्वर्टर (Q16 OR)
+                        </h3>
+                        <div class="flex flex-col md:flex-row gap-4 items-center bg-white p-6 rounded-lg border border-slate-100">
+                            <div class="flex-1 w-full">
+                                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">इनफिक्स व्यंजक (Infix Expression)</label>
+                                <input type="text" id="infix-input" value="(P+Q)*(R-Z)" readonly class="w-full bg-slate-50 border border-slate-300 rounded-lg px-4 py-2 font-mono text-slate-700 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                <p class="text-xs text-slate-400 mt-1">परीक्षा प्रश्न पत्र से</p>
+                            </div>
+                            <div class="text-2xl text-slate-300">➔</div>
+                            <div class="flex-1 w-full">
+                                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">पोस्टफिक्स परिणाम (Postfix Result)</label>
+                                <div id="postfix-result" class="w-full bg-orange-50 border border-orange-200 rounded-lg px-4 py-2 font-mono text-orange-800 font-bold min-h-[42px] flex items-center">
+                                    ?
+                                </div>
+                            </div>
+                            <button onclick="convertPostfix()" class="bg-slate-800 text-white px-6 py-2 rounded-lg hover:bg-slate-900 transition-colors">बदलें (Convert)</button>
+                        </div>
+                        <div class="mt-4 bg-blue-50 text-blue-800 p-4 rounded-lg text-sm">
+                            <strong>तर्क (Logic):</strong> 
+                            1. `(P+Q)` को हल करें → `PQ+` <br>
+                            2. `(R-Z)` को हल करें → `RZ-` <br>
+                            3. गुणा `*` लागू करें → `PQ+RZ-*`
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: SYSTEM ANALYSIS -->
+        <section id="systems-section" class="hidden space-y-8 animate-fade-in">
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-100">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">डेटाबेस और नेटवर्क सिस्टम</h2>
+                <p class="text-slate-600 mb-6 leading-relaxed">
+                    **खण्ड 'द' (Section D)** के विस्तृत उत्तर वाले विषयों का विश्लेषण, जिसमें डेटाबेस अवधारणाएं और नेटवर्क टोपोलॉजी शामिल हैं। तुलनात्मक दृश्य देखने के लिए नीचे दिए गए टैब का उपयोग करें।
+                </p>
+
+                <!-- Comparison Tabs -->
+                <div class="flex border-b border-gray-200 mb-6 overflow-x-auto no-scrollbar">
+                    <button onclick="switchSystemTab('fs-db')" id="tab-fs-db" class="px-4 py-2 text-sm font-medium text-orange-600 border-b-2 border-orange-600 focus:outline-none transition-colors whitespace-nowrap">फाइल सिस्टम बनाम DBMS</button>
+                    <button onclick="switchSystemTab('keys')" id="tab-keys" class="px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 border-b-2 border-transparent focus:outline-none transition-colors whitespace-nowrap">प्राइमरी बनाम फॉरेन की</button>
+                    <button onclick="switchSystemTab('search')" id="tab-search" class="px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 border-b-2 border-transparent focus:outline-none transition-colors whitespace-nowrap">रैखिक बनाम द्विआधारी खोज</button>
+                </div>
+
+                <!-- Content Area -->
+                <div id="system-content" class="min-h-[300px]">
+                    <!-- File System vs DBMS (Default) -->
+                    <div id="content-fs-db" class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
+                        <div class="bg-red-50 p-6 rounded-xl border border-red-100">
+                            <h3 class="font-bold text-red-800 text-lg mb-3">📂 फाइल सिस्टम की सीमाएँ (Limitations)</h3>
+                            <ul class="space-y-2 text-sm text-slate-700">
+                                <li class="flex items-start"><span class="mr-2 text-red-500">⚠</span> <strong>Data Redundancy (डेटा अतिरेकता):</strong> एक ही डेटा कई फाइलों में डुप्लिकेट होता है, जिससे जगह बर्बाद होती है।</li>
+                                <li class="flex items-start"><span class="mr-2 text-red-500">⚠</span> <strong>Data Inconsistency (डेटा असंगतता):</strong> एक फाइल में अपडेट करने पर दूसरी में अपडेट नहीं हो सकता है।</li>
+                                <li class="flex items-start"><span class="mr-2 text-red-500">⚠</span> <strong>Data Isolation:</strong> विभिन्न स्वरूपों की फाइलों से डेटा संयोजित करना कठिन होता है।</li>
+                                <li class="flex items-start"><span class="mr-2 text-red-500">⚠</span> <strong>Security (सुरक्षा):</strong> विस्तृत उपयोगकर्ता अनुमतियों को लागू करना कठिन है।</li>
+                            </ul>
+                        </div>
+                        <div class="bg-green-50 p-6 rounded-xl border border-green-100">
+                            <h3 class="font-bold text-green-800 text-lg mb-3">🗄️ DBMS के लाभ</h3>
+                            <ul class="space-y-2 text-sm text-slate-700">
+                                <li class="flex items-start"><span class="mr-2 text-green-500">✔</span> <strong>Centralized Control:</strong> अतिरेकता (redundancy) को कम करता है और संगतता सुनिश्चित करता है।</li>
+                                <li class="flex items-start"><span class="mr-2 text-green-500">✔</span> <strong>Query Language (SQL):</strong> कुशल डेटा पुनर्प्राप्ति और हेरफेर।</li>
+                                <li class="flex items-start"><span class="mr-2 text-green-500">✔</span> <strong>Concurrency Control:</strong> कई उपयोगकर्ताओं को सुरक्षित रूप से संभालता है।</li>
+                                <li class="flex items-start"><span class="mr-2 text-green-500">✔</span> <strong>Security (सुरक्षा):</strong> मजबूत एक्सेस कंट्रोल तंत्र।</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Primary vs Foreign Key (Hidden) -->
+                    <div id="content-keys" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
+                         <div class="bg-indigo-50 p-6 rounded-xl border border-indigo-100 relative overflow-hidden">
+                            <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl">🔑</div>
+                            <h3 class="font-bold text-indigo-900 text-lg mb-3">प्राइमरी की (Primary Key)</h3>
+                            <p class="text-sm text-slate-700 mb-4">एक तालिका (table) में प्रत्येक रिकॉर्ड को विशिष्ट रूप से पहचानती है।</p>
+                            <ul class="text-sm space-y-2 text-slate-700">
+                                <li>• <strong>Uniqueness (विशिष्टता):</strong> प्रत्येक पंक्ति के लिए अद्वितीय होनी चाहिए।</li>
+                                <li>• <strong>Nulls:</strong> NULL मान नहीं हो सकते।</li>
+                                <li>• <strong>उदाहरण:</strong> छात्र तालिका में `StudentID`।</li>
+                                <li>• <strong>संख्या:</strong> प्रति तालिका केवल एक PK।</li>
+                            </ul>
+                        </div>
+                         <div class="bg-teal-50 p-6 rounded-xl border border-teal-100 relative overflow-hidden">
+                            <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl">🔗</div>
+                            <h3 class="font-bold text-teal-900 text-lg mb-3">फॉरेन की (Foreign Key)</h3>
+                            <p class="text-sm text-slate-700 mb-4">संबंध बनाने के लिए दूसरी तालिका में प्राइमरी की से लिंक करती है।</p>
+                            <ul class="text-sm space-y-2 text-slate-700">
+                                <li>• <strong>Referential Integrity:</strong> सुनिश्चित करती है कि तालिकाओं के बीच लिंक मान्य हैं।</li>
+                                <li>• <strong>Nulls:</strong> NULL मान हो सकते हैं।</li>
+                                <li>• <strong>उदाहरण:</strong> `CourseID` छात्र तालिका में जो कोर्स से लिंक करती है।</li>
+                                <li>• <strong>संख्या:</strong> प्रति तालिका कई FK हो सकती हैं।</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Search Comparison (Hidden) -->
+                    <div id="content-search" class="hidden animate-fade-in">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">विशेषता (Feature)</th>
+                                        <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">रैखिक खोज (Linear Search)</th>
+                                        <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">द्विआधारी खोज (Binary Search)</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200 text-sm">
+                                    <tr>
+                                        <td class="py-3 px-4 font-medium text-gray-900">शर्त (Prerequisite)</td>
+                                        <td class="py-3 px-4 text-gray-600">कोई नहीं (अक्रमित सूची ठीक है)</td>
+                                        <td class="py-3 px-4 text-gray-600 bg-orange-50 font-medium">सूची क्रमबद्ध (Sorted) होनी चाहिए</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4 font-medium text-gray-900">तर्क (Logic)</td>
+                                        <td class="py-3 px-4 text-gray-600">क्रमिक जाँच (एक-एक करके)</td>
+                                        <td class="py-3 px-4 text-gray-600">विभाजित और जीतो (आधा करना)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4 font-medium text-gray-900">जटिलता (Complexity)</td>
+                                        <td class="py-3 px-4 text-gray-600">O(n) - धीमा</td>
+                                        <td class="py-3 px-4 text-gray-600">O(log n) - तेज़</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4 font-medium text-gray-900">उपयुक्त (Best For)</td>
+                                        <td class="py-3 px-4 text-gray-600">छोटी या अक्रमित सूची</td>
+                                        <td class="py-3 px-4 text-gray-600">बड़े, क्रमबद्ध डेटाबेस</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-800 text-slate-300 py-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="font-semibold text-white">SS-03 कंप्यूटर विज्ञान (ऐच्छिक)</p>
+            <p class="text-sm mt-2">उच्च माध्यमिक परीक्षा 2024 - इंटरैक्टिव समाधान समीक्षा</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- DATA STORE ---
+
+        const mcqData = [
+            { id: 1, q: "जब एक ऑपरेटर को गलत डेटा प्रकार के मूल्य के साथ आपूर्ति की जाती है तो कौनसा अपवाद उठाया जाता है?", options: ["प्रारूप त्रुटि (Type Error)", "मान त्रुटि (Value Error)", "आयात त्रुटि (Import Error)", "नाम त्रुटि (Name Error)"], correct: 0, explain: "TypeError तब होता है जब किसी अनुपयुक्त प्रकार की वस्तु पर कोई ऑपरेशन लागू किया जाता है।" },
+            { id: 2, q: "निम्न में से कौनसा अंतर्निमित अपवाद (built-in exception) है?", options: ["नाम त्रुटि", "शून्य विभाजन त्रुटि", "आई ओ त्रुटि", "उपरोक्त सभी"], correct: 3, explain: "पायथन में कई अंतर्निर्मित अपवाद हैं, जिनमें NameError, ZeroDivisionError, और IOError शामिल हैं।" },
+            { id: 3, q: "........... विधि का उपयोग वस्तुओं को बाइनरी फाइल में लिखने के लिए किया जाता है।", options: ["Load()", "Dump()", "Seek()", "Tell()"], correct: 1, explain: "pickle.dump() का उपयोग वस्तुओं को क्रमबद्ध करने और बाइनरी फ़ाइलों में लिखने के लिए किया जाता है।" },
+            { id: 4, q: "स्टैक ऐसा तंत्र है जो ........... व्यवस्था को लागू करता है।", options: ["FIFO", "LILO", "LIFO", "कोई नहीं"], correct: 2, explain: "स्टैक LIFO (Last In First Out - जो अंत में आया वो पहले जाएगा) का पालन करता है।" },
+            { id: 5, q: "........... और ........... का उपयोग पंक्ति (queue) की शुरूआत और अंत को इंगित करने के लिए किया जाता है।", options: ["Front (फ्रंट) और Rear (रिअर)", "Rear और Tail", "Top और Bottom", "Bottom और Top"], correct: 0, explain: "फ्रंट (Front) का उपयोग हटाने के लिए और रिअर (Rear) का उपयोग पंक्ति में सम्मिलित करने के लिए किया जाता है।" },
+            { id: 6, q: "कोई भी एल्गोरिदम जिसमें कोई लूप नहीं है, उसकी जटिलता ........... होगी।", options: ["n", "n²", "1", "n+1"], correct: 2, explain: "बिना लूप वाले एल्गोरिदम में आमतौर पर निरंतर समय लगता है, O(1)।" },
+            { id: 7, q: "........... खोज एक क्रमबद्ध सूची लेता है और इसे बीच में विभाजित करता है।", options: ["रैखिक खोज (Linear)", "द्विआधारी खोज (Binary)", "हैश आधारित", "उपरोक्त सभी"], correct: 1, explain: "द्विआधारी खोज (Binary Search) खोज अंतराल को आधा विभाजित करके क्रमबद्ध सूचियों पर काम करती है।" },
+            { id: 8, q: "दिए गए मानों का औसत ........... कहलाता है।", options: ["बहुलक (Mode)", "माध्यिका (Median)", "माध्य (Mean)", "मानक विचलन"], correct: 2, explain: "माध्य (Mean) अंकगणितीय औसत है।" },
+            { id: 9, q: "........... कंप्यूटर में डेटा स्टोर करने के लिए एक कंटेनर (पात्र) है।", options: ["राउटर", "SQL", "फाइल सिस्टम", "प्राइमरी की"], correct: 2, explain: "OS स्तर पर, फाइल सिस्टम डेटा के लिए मौलिक कंटेनर है।" },
+            { id: 10, q: "निम्न में से कौनसा MySQL का डेटा का प्रकार है?", options: ["CHAR(n)", "INT", "FLOAT", "उपरोक्त सभी"], correct: 3, explain: "सूचीबद्ध सभी विकल्प मान्य MySQL डेटा प्रकार हैं।" },
+            { id: 11, q: "निम्न में से कौनसा नेटवर्क का प्रकार है?", options: ["लैन (LAN)", "मैन (MAN)", "वैन (WAN)", "उपरोक्त सभी"], correct: 3, explain: "LAN, MAN, और WAN सभी नेटवर्क के प्रकार हैं।" },
+            { id: 12, q: "एक मशीन से दूसरी मशीन में फाइल ट्रांसफर करने के लिए इस्तेमाल किया जाने वाला प्रोटोकॉल कौनसा है?", options: ["HTTP", "FTP", "SMTP", "PPP"], correct: 1, explain: "FTP का अर्थ फाइल ट्रांसफर प्रोटोकॉल (File Transfer Protocol) है।" },
+            { id: 13, q: "निम्न में से कौनसा एक मैलवेयर है?", options: ["वायरस", "ट्रोजन", "स्पाइवेयर", "उपरोक्त सभी"], correct: 3, explain: "सूचीबद्ध सभी दुर्भावनापूर्ण सॉफ़्टवेयर (मैलवेयर) के प्रकार हैं।" },
+            { id: 14, q: "निम्न में से कौनसा वायर्ड ट्रांसमिशन मीडिया है?", options: ["ट्विस्टेड पेअर केबल", "को-एक्सिअल केबल", "ऑप्टिकल फाइबर", "उपरोक्त सभी"], correct: 3, explain: "ये सभी भौतिक केबलिंग मानक हैं।" },
+            { id: 15, q: "निम्न में से कौनसा एक मैथ फंक्शन है?", options: ["LENGTH()", "DATE()", "YEAR()", "POWER(x,y)"], correct: 3, explain: "POWER(x,y) x की घात y की गणना करता है।" },
+            { id: 16, q: "आई पी एड्रेस (IP address) क्या है?", options: ["इंटरनेट पॉवर एड्रेस", "इंटरनेट प्रोटोकॉल एड्रेस", "इंडस्ट्री पावर एड्रेस", "इंडस्ट्री प्रोटोकॉल एड्रेस"], correct: 1, explain: "IP का अर्थ इंटरनेट प्रोटोकॉल (Internet Protocol) है।" }
+        ];
+
+        const blankData = [
+            { id: 1, text: "पायथन कोड के सिंटैक्स में त्रुटि होने पर _____ अपवाद को उठाया जाता है।", ans: "SyntaxError" },
+            { id: 2, text: "पायथन में एक फाइल खोलने के लिए _____ फंक्शन का उपयोग करते हैं।", ans: "open()" },
+            { id: 3, text: "RDBMS का पूरा नाम _____ है।", ans: "Relational Database Management System" },
+            { id: 4, text: "डेटा के अधिकतम और न्यूनतम मानों के बीच का अंतर _____ कहलाता है।", ans: "Range (परिसर)" },
+            { id: 5, text: "_____ और _____ दो बुनियादी ऑपरेशन हैं जो स्टैक पर किए जाते हैं।", ans: "Push, Pop" },
+            { id: 6, text: "LIFO का पूरा नाम _____ है।", ans: "Last In First Out" },
+            { id: 7, text: "_____ एक स्टोरेज डिवाइस का उदाहरण है।", ans: "Hard Disk / Pen Drive" },
+            { id: 8, text: "1 kb में _____ बिट्स होती हैं।", ans: "8192 (या 1024)" },
+            { id: 9, text: "<r>, फाइल को _____ मोड में खोलता है।", ans: "Read (पढ़ने)" },
+            { id: 10, text: "WWW का पूरा नाम _____ है।", ans: "World Wide Web" }
+        ];
+
+        const conceptsData = [
+            { title: "Exception (अपवाद)", category: "Python", q: "अपवाद क्या होता है?", a: "प्रोग्राम के निष्पादन के दौरान होने वाली घटना या त्रुटि जो निर्देशों के सामान्य प्रवाह को बाधित करती है।" },
+            { title: "Text File (टेक्सट फाइल)", category: "Python", q: "टेक्सट फाइल क्या होती है?", a: "अक्षरों (ASCII/Unicode) के अनुक्रम के रूप में डेटा संग्रहीत करने वाली फ़ाइल, जिसे मनुष्य पढ़ सकते हैं।" },
+            { title: "Stack (स्टैक)", category: "DS", q: "स्टैक क्या होता है?", a: "एक रैखिक डेटा संरचना जो LIFO (Last In First Out) का पालन करती है, जहाँ सम्मिलन और हटाना 'Top' पर होता है।" },
+            { title: "Sorting (छंटाई)", category: "DS", q: "किन्हीं दो छंटाई विधियों के नाम लिखिए।", a: "1. बबल सॉर्ट (Bubble Sort)<br>2. सेलेक्शन सॉर्ट (Selection Sort)" },
+            { title: "Mean (माध्य)", category: "DS", q: "माध्य क्या है?", a: "संख्याओं के समूह का अंकगणितीय औसत, जिसकी गणना योग को संख्या से विभाजित करके की जाती है।" },
+            { title: "SQL Date Func", category: "SQL", q: "SQL में किन्हीं दो डेट फंक्शन के नाम लिखिए।", a: "1. NOW() - वर्तमान दिनांक और समय<br>2. DATE() - दिनांक भाग निकालता है" },
+            { title: "Close() Method", category: "Python", q: "Close() विधि के बारे में लिखिए।", a: "एक खुली फ़ाइल को बंद करता है, बफ़र्स को फ्लश करता है और सिस्टम संसाधनों को मुक्त करता है। डेटा अखंडता के लिए आवश्यक है।" },
+            { title: "Binary Files", category: "Python", q: "बाइनरी फाइल से आप क्या समझते हैं?", a: "डेटा को मशीन-पठनीय 0s और 1s (मेमोरी प्रारूप) में संग्रहीत करने वाली फ़ाइलें। छवियों/वस्तुओं के लिए कुशल। मनुष्य सीधे नहीं पढ़ सकते।" },
+            { title: "Queue Uses", category: "DS", q: "पंक्ति के कोई तीन उपयोग लिखिए।", a: "1. CPU शेड्यूलिंग<br>2. प्रिंटर स्पूलिंग<br>3. डेटा बफरिंग" },
+            { title: "Foreign Key", category: "SQL", q: "फॉरेन की क्या होती है?", a: "एक फ़ील्ड जो दूसरी तालिका की प्राइमरी की को संदर्भित करता है, संदर्भात्मक अखंडता (referential integrity) बनाए रखता है।" },
+            { title: "Bubble Sort", category: "DS", q: "बबल सॉर्ट क्या होती है?", a: "सरल एल्गोरिदम जो बार-बार आसन्न तत्वों की अदला-बदली करता है यदि वे गलत क्रम में हैं।" },
+            { title: "CREATE TABLE", category: "SQL", q: "CREATE TABLE का उपयोग लिखिए।", a: "नई तालिका संरचना को परिभाषित करता है: नाम, कॉलम, डेटा प्रकार और बाधाएं (constraints)।" },
+            { title: "Star Topology", category: "Networks", q: "स्टार नेटवर्क टॉपोलोजी क्या है?", a: "सभी नोड्स व्यक्तिगत रूप से एक केंद्रीय हब/स्विच से जुड़ते हैं। यदि हब विफल हो जाता है, तो नेटवर्क विफल हो जाता है।" },
+            { title: "DEQUE", category: "DS", q: "डीक्यू (DEQUE) क्या है?", a: "डबल एंडेड कतार। दोनों सिरों (फ्रंट और रिअर) से सम्मिलन और हटाने की अनुमति देता है।" }
+        ];
+
+        // --- STATE ---
+        let quizScore = 0;
+        let answeredIds = new Set();
+        let currentLsStep = 0;
+        const lsTarget = 20;
+        const lsArray = [15, 4, 27, 20, 31, 9];
+        let lsFound = false;
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderQuiz();
+            renderConcepts('all');
+            initChart();
+            renderLsArray();
+            document.getElementById('nav-quiz').click(); // Default tab
+        });
+
+        // --- NAVIGATION ---
+        function switchTab(tabId) {
+            // Hide all sections
+            document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
+            // Show target
+            document.getElementById(tabId + '-section').classList.remove('hidden');
+            
+            // Update Nav Styles
+            document.querySelectorAll('nav button').forEach(el => el.classList.remove('active-nav'));
+            const desktopBtn = document.getElementById('nav-' + tabId);
+            if(desktopBtn) desktopBtn.classList.add('active-nav');
+            
+            // Mobile menu logic handled in toggle
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // --- QUIZ LOGIC ---
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = '';
+
+            // MCQs
+            mcqData.forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'bg-white border border-slate-200 rounded-lg p-5 shadow-sm transition-all-300';
+                el.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded">Q${item.id}</span>
+                        <span class="text-xs text-slate-400">MCQ</span>
+                    </div>
+                    <p class="font-medium text-slate-800 mb-4">${item.q}</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="opts-${item.id}">
+                        ${item.options.map((opt, idx) => `
+                            <button onclick="checkAnswer(${item.id}, ${idx})" 
+                                class="option-btn text-left px-4 py-3 rounded-lg border border-slate-200 hover:bg-slate-50 text-sm transition-colors text-slate-600">
+                                ${String.fromCharCode(65+idx)}) ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div id="feedback-${item.id}" class="hidden mt-4 p-3 bg-slate-50 rounded text-sm text-slate-700 border-l-4 border-slate-300"></div>
+                `;
+                container.appendChild(el);
+            });
+
+            // Blank Fillers Header
+            const divider = document.createElement('div');
+            divider.className = 'mt-8 mb-4 border-t border-slate-200 pt-4';
+            divider.innerHTML = '<h3 class="text-xl font-bold text-slate-800">रिक्त स्थानों की पूर्ति कीजिए (Fill in the Blanks)</h3>';
+            container.appendChild(divider);
+
+            // Blanks
+            const blankGrid = document.createElement('div');
+            blankGrid.className = 'grid grid-cols-1 md:grid-cols-2 gap-4';
+            blankData.forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'bg-slate-50 p-4 rounded-lg border border-slate-100';
+                el.innerHTML = `
+                    <p class="text-sm text-slate-700 leading-relaxed">${item.text.replace('_____', `<span class="border-b-2 border-orange-400 font-bold text-orange-700 px-1 mx-1 cursor-pointer" title="उत्तर देखने के लिए क्लिक करें" onclick="this.innerText='${item.ans}'">_____</span>`)}</p>
+                `;
+                blankGrid.appendChild(el);
+            });
+            container.appendChild(blankGrid);
+        }
+
+        function checkAnswer(qId, selectedIdx) {
+            if (answeredIds.has(qId)) return; // Prevent re-answering
+            answeredIds.add(qId);
+
+            const question = mcqData.find(q => q.id === qId);
+            const isCorrect = selectedIdx === question.correct;
+            const parent = document.getElementById(`opts-${qId}`);
+            const buttons = parent.getElementsByTagName('button');
+            const feedback = document.getElementById(`feedback-${qId}`);
+
+            // Update UI
+            if (isCorrect) {
+                buttons[selectedIdx].classList.add('correct');
+                quizScore++;
+                feedback.innerHTML = `<strong>सही! (Correct!)</strong> ${question.explain}`;
+                feedback.classList.add('border-green-500', 'bg-green-50');
+            } else {
+                buttons[selectedIdx].classList.add('incorrect');
+                buttons[question.correct].classList.add('correct'); // Show correct one
+                feedback.innerHTML = `<strong>गलत।</strong> सही उत्तर है <em>${question.options[question.correct]}</em>. ${question.explain}`;
+                feedback.classList.add('border-red-500', 'bg-red-50');
+            }
+            feedback.classList.remove('hidden');
+            
+            // Update Score
+            document.getElementById('score-display').innerText = `${quizScore} / ${mcqData.length}`;
+        }
+
+        function resetQuiz() {
+            quizScore = 0;
+            answeredIds.clear();
+            document.getElementById('score-display').innerText = '0 / 0';
+            renderQuiz();
+        }
+
+        // --- CONCEPTS LOGIC ---
+        function filterConcepts(cat) {
+            renderConcepts(cat);
+            // Update button styles can be added here
+        }
+
+        function renderConcepts(filter) {
+            const grid = document.getElementById('concepts-grid');
+            grid.innerHTML = '';
+            
+            const filtered = filter === 'all' ? conceptsData : conceptsData.filter(c => c.category === filter);
+
+            filtered.forEach((item, idx) => {
+                const el = document.createElement('div');
+                el.className = 'bg-white border border-slate-200 rounded-xl p-6 shadow-sm card-hover cursor-pointer group relative overflow-hidden min-h-[160px] flex flex-col justify-center items-center text-center';
+                el.onclick = () => {
+                    const ansDiv = document.getElementById(`ans-${idx}`);
+                    const qDiv = document.getElementById(`q-${idx}`);
+                    const badge = document.getElementById(`badge-${idx}`);
+                    if (ansDiv.classList.contains('hidden')) {
+                        ansDiv.classList.remove('hidden');
+                        qDiv.classList.add('hidden');
+                        el.classList.add('bg-slate-50');
+                    } else {
+                        ansDiv.classList.add('hidden');
+                        qDiv.classList.remove('hidden');
+                        el.classList.remove('bg-slate-50');
+                    }
+                };
+
+                el.innerHTML = `
+                    <span id="badge-${idx}" class="absolute top-3 right-3 text-[10px] uppercase font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-full">${item.category}</span>
+                    <div id="q-${idx}" class="transition-all-300">
+                        <h3 class="text-lg font-bold text-slate-700">${item.title}</h3>
+                        <p class="text-sm text-slate-500 mt-2">उत्तर देखने के लिए क्लिक करें</p>
+                    </div>
+                    <div id="ans-${idx}" class="hidden animate-fade-in w-full">
+                        <p class="text-sm font-semibold text-orange-600 mb-1">उत्तर:</p>
+                        <p class="text-slate-700 text-sm leading-relaxed">${item.a}</p>
+                    </div>
+                `;
+                grid.appendChild(el);
+            });
+        }
+
+        // --- ALGORITHM LOGIC ---
+        
+        // 1. Chart.js for Time Complexity
+        function initChart() {
+            const ctx = document.getElementById('complexityChart').getContext('2d');
+            const dataPoints = Array.from({length: 10}, (_, i) => i + 1); // 1 to 10
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dataPoints,
+                    datasets: [
+                        { label: 'O(1) - Constant (अचर)', data: dataPoints.map(() => 1), borderColor: '#10b981', tension: 0.1 },
+                        { label: 'O(log n) - Logarithmic (लघुगणकीय)', data: dataPoints.map(x => Math.log2(x)), borderColor: '#3b82f6', tension: 0.4 },
+                        { label: 'O(n) - Linear (रैखिक)', data: dataPoints, borderColor: '#f59e0b', tension: 0.1 },
+                        { label: 'O(n²) - Quadratic (द्विघात)', data: dataPoints.map(x => x*x), borderColor: '#ef4444', tension: 0.4 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'समय / संचालन (Time/Ops)' } },
+                        x: { title: { display: true, text: 'इनपुट आकार (n)' } }
+                    }
+                }
+            });
+        }
+
+        // 2. Linear Search Simulation
+        function renderLsArray() {
+            const container = document.getElementById('ls-array');
+            container.innerHTML = '';
+            lsArray.forEach((val, idx) => {
+                const box = document.createElement('div');
+                box.id = `ls-box-${idx}`;
+                box.className = 'w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded border-2 border-slate-300 bg-white font-bold text-slate-700 transition-all-300';
+                box.innerText = val;
+                container.appendChild(box);
+            });
+        }
+
+        function lsStep() {
+            if (lsFound) return;
+            const log = document.getElementById('ls-log');
+            const box = document.getElementById(`ls-box-${currentLsStep}`);
+            const val = lsArray[currentLsStep];
+
+            // Reset previous highlights if moving
+            if (currentLsStep > 0 && !lsFound) {
+                 document.getElementById(`ls-box-${currentLsStep-1}`).classList.remove('border-blue-500', 'bg-blue-50');
+            }
+
+            if (currentLsStep < lsArray.length) {
+                // Highlight current
+                box.classList.add('border-blue-500', 'bg-blue-50');
+                
+                let msg = document.createElement('div');
+                msg.className = "mb-1";
+                
+                if (val === lsTarget) {
+                    lsFound = true;
+                    box.classList.remove('border-blue-500', 'bg-blue-50');
+                    box.classList.add('border-green-500', 'bg-green-100', 'text-green-800');
+                    msg.innerHTML = `<span class="text-green-600 font-bold">✓ मिल गया!</span> तत्व ${lsTarget}, इंडेक्स ${currentLsStep} पर मिला।`;
+                    document.getElementById('ls-next-btn').disabled = true;
+                    document.getElementById('ls-next-btn').classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    msg.innerHTML = `चरण ${currentLsStep+1}: इंडेक्स ${currentLsStep} में ${val} है। ${val} != ${lsTarget}। आगे बढ़ें।`;
+                    currentLsStep++;
+                }
+                log.appendChild(msg);
+                log.scrollTop = log.scrollHeight;
+            } else {
+                let msg = document.createElement('div');
+                msg.innerText = "सूची का अंत। तत्व नहीं मिला।";
+                log.appendChild(msg);
+            }
+        }
+
+        function lsReset() {
+            currentLsStep = 0;
+            lsFound = false;
+            document.getElementById('ls-log').innerHTML = 'खोजने के लिए \'अगला चरण\' पर क्लिक करें...';
+            document.getElementById('ls-next-btn').disabled = false;
+            document.getElementById('ls-next-btn').classList.remove('opacity-50', 'cursor-not-allowed');
+            renderLsArray();
+        }
+
+        // 3. Postfix Conversion
+        function convertPostfix() {
+            // Logic mimicking Q16 OR: (P+Q)*(R-Z) -> PQ+RZ-*
+            const resDiv = document.getElementById('postfix-result');
+            resDiv.innerHTML = "PQ+RZ-*";
+            resDiv.classList.add('bg-green-100', 'text-green-800', 'border-green-200');
+            setTimeout(() => {
+                resDiv.classList.remove('bg-green-100', 'text-green-800', 'border-green-200');
+            }, 2000);
+        }
+
+        // --- SYSTEM TABS LOGIC ---
+        function switchSystemTab(tabName) {
+            // Hide Contents
+            ['fs-db', 'keys', 'search'].forEach(t => {
+                document.getElementById('content-' + t).classList.add('hidden');
+                const btn = document.getElementById('tab-' + t);
+                btn.classList.remove('border-orange-600', 'text-orange-600');
+                btn.classList.add('border-transparent', 'text-slate-500');
+            });
+            
+            // Show Target
+            document.getElementById('content-' + tabName).classList.remove('hidden');
+            const activeBtn = document.getElementById('tab-' + tabName);
+            activeBtn.classList.remove('border-transparent', 'text-slate-500');
+            activeBtn.classList.add('border-orange-600', 'text-orange-600');
+        }
+
+    </script>
+</body>
+</html>
