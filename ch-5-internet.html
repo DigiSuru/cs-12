@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 5: Internet and Web - Interactive Revision</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        hand: ['Patrick Hand', 'cursive'],
+                    },
+                    colors: {
+                        notebook: '#FAFAF9',
+                        ink: '#292524',
+                        highlighter: '#FCD34D',
+                        accent: '#059669',
+                        danger: '#DC2626'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 40vh;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 350px; }
+        }
+        body { background-color: #FAFAF9; color: #292524; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .flashcard { perspective: 1000px; cursor: pointer; }
+        .flashcard-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
+        .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+        .flashcard-front, .flashcard-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1rem; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); overflow-y: auto;}
+        .flashcard-front { background-color: white; border: 2px solid #E7E5E4; }
+        .flashcard-back { background-color: #FEF3C7; transform: rotateY(180deg); border: 2px solid #F59E0B; }
+        .lined-paper { background-image: linear-gradient(#E7E5E4 1px, transparent 1px); background-size: 100% 2rem; line-height: 2rem; padding-top: 0.5rem; }
+        
+        /* Pure CSS Topology Graphics */
+        .topology-node { width: 40px; height: 40px; background: #059669; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; position: absolute; z-index: 10; font-size: 0.8rem;}
+        .topology-line { position: absolute; background: #A8A29E; z-index: 1; }
+        .ring-container, .star-container, .mesh-container, .tree-container { position: relative; width: 200px; height: 200px; margin: 0 auto; }
+        .ring-container { border: 4px solid #A8A29E; border-radius: 50%; }
+        .bus-container { position: relative; width: 100%; height: 150px; }
+        .bus-line { position: absolute; top: 50%; left: 10%; right: 10%; height: 8px; background: #A8A29E; transform: translateY(-50%); }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+<!-- Chosen Palette: Warm Neutrals (Stone, Amber, Emerald) -->
+<!-- Application Structure Plan: Expanding the "Digital Interactive Notebook" concept to 5 tabs to accommodate the full depth of the provided text without causing overwhelming scroll. The content is chunked into logical groupings matching the source text. Interactive elements like flashcards and toggles are retained and expanded for the new hardware and web concepts. -->
+<!-- Visualization & Content Choices: Added full browser settings and plugins comparison to Tab 5. Upgraded Hardware flashcards to include all items from the source table. Removed all SVG elements from topologies and replaced them with mathematically positioned CSS divs to ensure strict compliance while maintaining visual learning. -->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+<nav class="bg-white border-b-2 border-stone-200 sticky top-0 z-50 overflow-x-auto">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex flex-row justify-between items-center py-4 gap-4 min-w-max">
+            <h1 class="font-hand text-3xl font-bold text-ink whitespace-nowrap"><span class="text-accent">📝</span> IP Notes: Ch 5</h1>
+            <div class="flex flex-nowrap gap-2" id="nav-buttons">
+                <button data-target="networks" class="nav-btn whitespace-nowrap px-4 py-2 rounded-full font-semibold text-sm transition-colors bg-accent text-white shadow-sm">1. Networks</button>
+                <button data-target="hardware" class="nav-btn whitespace-nowrap px-4 py-2 rounded-full font-semibold text-sm transition-colors bg-stone-100 text-stone-600 hover:bg-stone-200">2. Hardware</button>
+                <button data-target="topologies" class="nav-btn whitespace-nowrap px-4 py-2 rounded-full font-semibold text-sm transition-colors bg-stone-100 text-stone-600 hover:bg-stone-200">3. Topologies</button>
+                <button data-target="web" class="nav-btn whitespace-nowrap px-4 py-2 rounded-full font-semibold text-sm transition-colors bg-stone-100 text-stone-600 hover:bg-stone-200">4. Web & Hosting</button>
+                <button data-target="services" class="nav-btn whitespace-nowrap px-4 py-2 rounded-full font-semibold text-sm transition-colors bg-stone-100 text-stone-600 hover:bg-stone-200">5. Services & Browsers</button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<main class="flex-grow max-w-6xl mx-auto w-full p-4 md:p-8">
+
+    <!-- TAB 1: NETWORKS -->
+    <section id="networks" class="tab-content active">
+        <div class="mb-8 bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+            <h2 class="font-hand text-3xl font-bold mb-4 border-b-4 border-highlighter inline-block">1. Introduction to Computer Networks</h2>
+            <p class="text-lg leading-relaxed mb-4">A <strong class="text-accent">Computer Network</strong> is an interconnection of two or more computers or computing devices to share data and resources among each other.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="p-4 bg-stone-50 rounded-lg border-l-4 border-accent">
+                    <h3 class="font-bold text-xl mb-2">💻 Node / Host</h3>
+                    <p>Any device (computer, printer, router, etc.) connected to a network that can send, receive, or store data.</p>
+                </div>
+                <div class="p-4 bg-stone-50 rounded-lg border-l-4 border-highlighter">
+                    <h3 class="font-bold text-xl mb-2">📦 Packet</h3>
+                    <p>Data sent over a network is divided into smaller chunks called packets.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 mb-8">
+            <h2 class="font-hand text-3xl font-bold mb-6">Geographical Network Types</h2>
+            <p class="mb-6 italic text-stone-600">🔥 Exam Tip: Remember the size order: PAN &lt; LAN &lt; MAN &lt; WAN.</p>
+            
+            <div class="chart-container mb-8">
+                <canvas id="networkChart"></canvas>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+                <div class="p-4 rounded-lg bg-stone-50 border border-stone-200">
+                    <div class="text-3xl mb-2">📱</div>
+                    <h4 class="font-bold text-lg">PAN</h4>
+                    <p class="text-sm text-stone-600 mb-2">Personal Area Network</p>
+                    <ul class="text-sm list-disc pl-4">
+                        <li>Very short range (few meters)</li>
+                        <li>Phones, Laptops, Bluetooth</li>
+                        <li>Easy to use, low speed</li>
+                    </ul>
+                </div>
+                <div class="p-4 rounded-lg bg-stone-50 border border-stone-200">
+                    <div class="text-3xl mb-2">🏢</div>
+                    <h4 class="font-bold text-lg">LAN</h4>
+                    <p class="text-sm text-stone-600 mb-2">Local Area Network</p>
+                    <ul class="text-sm list-disc pl-4">
+                        <li>Up to 1km (Room, Building)</li>
+                        <li>10 Mbps to 1 Gbps</li>
+                        <li>Uses <strong>Ethernet</strong> rules</li>
+                        <li>Highly secure</li>
+                    </ul>
+                </div>
+                <div class="p-4 rounded-lg bg-stone-50 border border-stone-200">
+                    <div class="text-3xl mb-2">🏙️</div>
+                    <h4 class="font-bold text-lg">MAN</h4>
+                    <p class="text-sm text-stone-600 mb-2">Metropolitan Area Network</p>
+                    <ul class="text-sm list-disc pl-4">
+                        <li>30-40km (Town, City)</li>
+                        <li>Connects multiple LANs</li>
+                        <li>Ex: Cable TV networks</li>
+                    </ul>
+                </div>
+                <div class="p-4 rounded-lg bg-stone-50 border border-stone-200">
+                    <div class="text-3xl mb-2">🌍</div>
+                    <h4 class="font-bold text-lg">WAN</h4>
+                    <p class="text-sm text-stone-600 mb-2">Wide Area Network</p>
+                    <ul class="text-sm list-disc pl-4">
+                        <li>Countries / Continents</li>
+                        <li>Connects LANs and MANs</li>
+                        <li><strong>The Internet</strong> is a WAN</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+            <h2 class="font-hand text-3xl font-bold mb-6">Types of Networks Based on Architecture</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="border-2 border-stone-200 rounded-xl p-5 hover:border-accent transition-colors">
+                    <h3 class="font-bold text-xl mb-3 flex items-center gap-2">🤝 Peer-to-Peer (P2P)</h3>
+                    <p class="mb-3 text-sm">All computers are equal and there is no central server. Each computer can act as both a client and a server. Simple and inexpensive, suitable for small networks.</p>
+                    <div class="flex gap-2 mt-auto">
+                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-bold">✓ Cheap</span>
+                        <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded font-bold">✗ Poor Security</span>
+                    </div>
+                </div>
+                <div class="border-2 border-stone-200 rounded-xl p-5 hover:border-accent transition-colors">
+                    <h3 class="font-bold text-xl mb-3 flex items-center gap-2">👑 Client-Server</h3>
+                    <p class="mb-3 text-sm">One or more computers act as servers and provide resources/services, while other computers (clients) request those services. Server controls security and access.</p>
+                    <div class="flex gap-2 mt-auto">
+                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-bold">✓ Highly Secure & Efficient</span>
+                        <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded font-bold">✗ High Cost</span>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-stone-50 p-4 rounded border border-stone-200 flex flex-col md:flex-row gap-4">
+                <div class="flex-1">
+                    <h4 class="font-bold text-accent">🔹 Intranet</h4>
+                    <p class="text-sm">A private network used within an organization. Allows employees to share information securely.</p>
+                </div>
+                <div class="flex-1 border-t md:border-t-0 md:border-l border-stone-200 md:pl-4 pt-4 md:pt-0">
+                    <h4 class="font-bold text-accent">🔹 Extranet</h4>
+                    <p class="text-sm">An extension of an intranet that allows limited access to external users such as clients or business partners.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TAB 2: HARDWARE -->
+    <section id="hardware" class="tab-content">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div>
+                    <h2 class="font-hand text-3xl font-bold mb-2">Networking Devices</h2>
+                    <p class="text-stone-600">Physical devices required for communication. Click any card to flip!</p>
+                </div>
+                <div class="bg-amber-100 p-3 rounded-lg border border-amber-300 text-sm font-bold">
+                    🔥 Quick Trick:<br>Hub = Dumb | Switch = Smart | Router = Navigator
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="flashcards-container">
+                <!-- JS will populate all 11 devices here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- TAB 3: TOPOLOGIES -->
+    <section id="topologies" class="tab-content">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+            <h2 class="font-hand text-3xl font-bold mb-4">Network Topologies</h2>
+            <p class="mb-6">The physical or logical arrangement of computers and cables. Select a topology to learn its structure and properties.</p>
+            
+            <div class="flex flex-wrap gap-2 mb-8" id="topology-buttons">
+                <button data-topo="mesh" class="topo-btn bg-accent text-white px-4 py-2 rounded font-bold">Mesh</button>
+                <button data-topo="ring" class="topo-btn bg-stone-200 text-stone-700 px-4 py-2 rounded font-bold hover:bg-stone-300">Ring</button>
+                <button data-topo="bus" class="topo-btn bg-stone-200 text-stone-700 px-4 py-2 rounded font-bold hover:bg-stone-300">Bus</button>
+                <button data-topo="star" class="topo-btn bg-stone-200 text-stone-700 px-4 py-2 rounded font-bold hover:bg-stone-300">Star</button>
+                <button data-topo="tree" class="topo-btn bg-stone-200 text-stone-700 px-4 py-2 rounded font-bold hover:bg-stone-300">Tree / Hybrid</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-stone-50 p-6 rounded-xl border border-stone-200 min-h-[350px]">
+                <div id="topo-visual" class="flex justify-center items-center h-full w-full">
+                    <!-- Populated by JS -->
+                </div>
+                <div id="topo-info" class="lined-paper h-full p-4">
+                     <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TAB 4: WEB & HOSTING -->
+    <section id="web" class="tab-content">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                <h2 class="font-hand text-3xl font-bold mb-4">Internet vs WWW</h2>
+                <div class="space-y-4">
+                    <div class="p-4 border border-stone-200 rounded bg-stone-50">
+                        <h3 class="font-bold text-lg text-accent">🌍 The Internet</h3>
+                        <p class="text-sm">The <strong>global network</strong> of computing devices. Not just PCs, includes servers, tablets, phones, and smart IoT devices. Connects via Modem → local ISP → Regional Net → National Net → Internet Backbone.</p>
+                    </div>
+                    <div class="p-4 border border-stone-200 rounded bg-stone-50">
+                        <h3 class="font-bold text-lg text-accent">🕸️ The Web (WWW)</h3>
+                        <p class="text-sm">An ocean of information stored as trillions of interlinked web pages. It is a <strong>software/service</strong> running on top of the Internet. (Invented by Sir Tim Berners-Lee in 1990).</p>
+                    </div>
+                </div>
+                <div class="mt-4 p-4 bg-amber-50 rounded border border-amber-200">
+                    <h4 class="font-bold mb-2">⚡ 3 Fundamental Web Technologies:</h4>
+                    <ul class="list-disc pl-5 text-sm space-y-2">
+                        <li><strong>HTML:</strong> Standard language to design web pages using tags.</li>
+                        <li><strong>URI/URL:</strong> Uniform Resource Identifier (identifies resource). URL is a type of URI that provides the specific <em>location</em> and <em>protocol</em> (e.g., http://www.ncert.nic.in).</li>
+                        <li><strong>HTTP/HTTPS:</strong> Set of rules to retrieve and transfer web pages. HTTPS is secure/encrypted.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    <h2 class="font-hand text-3xl font-bold mb-4">Web Server</h2>
+                    <p class="text-sm mb-2">A web server stores website contents and delivers them to clients upon request.</p>
+                    <ul class="list-disc pl-5 text-sm text-stone-700">
+                        <li><strong>As Hardware:</strong> A powerful physical computer connected to the Internet storing HTML, CSS, JS, and images.</li>
+                        <li><strong>As Software:</strong> A specialized program accepting HTTP requests and sending HTTP responses. If page is missing, sends <strong>Error 404</strong>.</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 flex-grow">
+                    <h2 class="font-hand text-3xl font-bold mb-4">Static vs Dynamic Web Pages</h2>
+                    <div class="flex justify-center mb-4">
+                        <div class="bg-stone-200 p-1 rounded-lg inline-flex">
+                            <button id="btn-static" class="px-4 py-1 rounded bg-white shadow font-bold text-sm">Static</button>
+                            <button id="btn-dynamic" class="px-4 py-1 rounded text-stone-600 font-bold text-sm hover:bg-stone-300">Dynamic</button>
+                        </div>
+                    </div>
+                    <div id="page-details" class="text-sm bg-stone-50 p-3 rounded border border-stone-200 h-40 overflow-y-auto">
+                        <p class="font-bold text-accent">Static Web Page (.htm / .html)</p>
+                        <p class="mt-1">Content remains the same for every user.</p>
+                        <p class="mt-1 text-stone-600"><strong>Processing:</strong> Server simply locates the page and sends it. No server-side processing.</p>
+                        <p class="mt-1 text-stone-600"><strong>Languages:</strong> HTML, CSS, JavaScript. <strong>Speed:</strong> Loads faster.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 mb-6">
+            <h2 class="font-hand text-3xl font-bold mb-4">Hosting of a Website</h2>
+            <p class="mb-4">Web hosting is renting server resources (CPU, RAM, storage) from a Cloud Service Provider. A server has a numeric IP address, but <strong>DNS (Domain Name System)</strong> maps textual domain names to this IP.</p>
+            
+            <div class="bg-stone-900 text-white p-6 rounded-xl">
+                <h3 class="text-xl font-bold mb-4 text-highlighter">⭐ Steps to Host: Mnemonic "S.R.S.U.M"</h3>
+                <div class="flex flex-col gap-2" id="hosting-steps">
+                    <button class="step-btn w-full text-left bg-stone-800 hover:bg-stone-700 p-3 rounded flex justify-between items-center transition-colors">
+                        <span class="font-bold"><span class="text-highlighter mr-2">S</span>elect Web Host</span><span class="text-xl">+</span>
+                    </button>
+                    <div class="step-content hidden px-4 pb-2 text-stone-300 text-sm border-l-2 border-highlighter ml-2">Choose provider based on needs (bandwidth, DB, storage).</div>
+
+                    <button class="step-btn w-full text-left bg-stone-800 hover:bg-stone-700 p-3 rounded flex justify-between items-center transition-colors">
+                        <span class="font-bold"><span class="text-highlighter mr-2">R</span>egister Domain</span><span class="text-xl">+</span>
+                    </button>
+                    <div class="step-content hidden px-4 pb-2 text-stone-300 text-sm border-l-2 border-highlighter ml-2">Identify a suitable name and purchase from a Domain Name Registrar.</div>
+
+                    <button class="step-btn w-full text-left bg-stone-800 hover:bg-stone-700 p-3 rounded flex justify-between items-center transition-colors">
+                        <span class="font-bold"><span class="text-highlighter mr-2">S</span>etup Server Space</span><span class="text-xl">+</span>
+                    </button>
+                    <div class="step-content hidden px-4 pb-2 text-stone-300 text-sm border-l-2 border-highlighter ml-2">Create login credentials and note down the IP address.</div>
+
+                    <button class="step-btn w-full text-left bg-stone-800 hover:bg-stone-700 p-3 rounded flex justify-between items-center transition-colors">
+                        <span class="font-bold"><span class="text-highlighter mr-2">U</span>pload Files</span><span class="text-xl">+</span>
+                    </button>
+                    <div class="step-content hidden px-4 pb-2 text-stone-300 text-sm border-l-2 border-highlighter ml-2">Transfer HTML, CSS, and Database files into proper folders.</div>
+
+                    <button class="step-btn w-full text-left bg-stone-800 hover:bg-stone-700 p-3 rounded flex justify-between items-center transition-colors">
+                        <span class="font-bold"><span class="text-highlighter mr-2">M</span>ap Domain via DNS</span><span class="text-xl">+</span>
+                    </button>
+                    <div class="step-content hidden px-4 pb-2 text-stone-300 text-sm border-l-2 border-highlighter ml-2">Link your registered Domain to the server's IP via DNS settings.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TAB 5: SERVICES & BROWSERS -->
+    <section id="services" class="tab-content">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <!-- Internet Services -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                <h2 class="font-hand text-3xl font-bold mb-6">Internet Services</h2>
+                
+                <div class="mb-6">
+                    <h3 class="font-bold text-xl text-accent mb-2 flex items-center gap-2">📧 Electronic Mail (Email)</h3>
+                    <p class="text-sm mb-3">Sending/receiving messages. Custom business domains (username@company.com). Key facilities:</p>
+                    <ul class="text-sm list-none grid grid-cols-1 sm:grid-cols-2 gap-2 text-stone-700">
+                        <li><span class="text-accent font-bold">✓</span> Composing & Saving Drafts</li>
+                        <li><span class="text-accent font-bold">✓</span> Broadcasting to multiple users</li>
+                        <li><span class="text-accent font-bold">✓</span> CC (Carbon Copy) & BCC</li>
+                        <li><span class="text-accent font-bold">✓</span> Forwarding mail</li>
+                        <li><span class="text-accent font-bold">✓</span> Filtering Spam</li>
+                        <li><span class="text-accent font-bold">✓</span> Folders & Organization</li>
+                        <li><span class="text-accent font-bold">✓</span> Address Book management</li>
+                        <li><span class="text-accent font-bold">✓</span> Auto-Signatures (Footers)</li>
+                        <li><span class="text-accent font-bold">✓</span> Printing/Saving files</li>
+                        <li><span class="text-accent font-bold">✓</span> Searching old emails</li>
+                    </ul>
+                </div>
+
+                <div class="mb-6">
+                    <h3 class="font-bold text-xl text-accent mb-2">💬 Chat (Instant Messaging)</h3>
+                    <p class="text-sm">Real-time communication. Both parties must be <strong>online simultaneously</strong> using the <strong>same app</strong> (WhatsApp, Slack, Skype). Supports text, audio, video, and groups.</p>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-xl text-accent mb-2">📞 VoIP (Voice over IP)</h3>
+                    <p class="text-sm mb-2">Broadband Telephony. Converts analog voice to digital packets over the internet.</p>
+                    <div class="flex flex-col gap-1 text-sm">
+                        <div class="bg-green-50 p-2 rounded border border-green-200"><strong>Pros:</strong> Free/cheap (great for international), high portability using IP phones.</div>
+                        <div class="bg-red-50 p-2 rounded border border-red-200"><strong>Cons:</strong> Quality depends completely on internet speed.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Browsers -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                <h2 class="font-hand text-3xl font-bold mb-4">Web Browsers</h2>
+                <p class="text-sm mb-4">A software application (Chrome, Firefox, Opera) used to view web pages and retrieve info from servers.</p>
+                
+                <h3 class="font-bold text-lg mb-2 border-b pb-1">⚙️ Browser Settings (e.g., Firefox)</h3>
+                <ul class="list-disc pl-5 text-sm space-y-1 text-stone-700 mb-6">
+                    <li><strong>General:</strong> Default browser, language, downloads.</li>
+                    <li><strong>Home:</strong> Set the default home page.</li>
+                    <li><strong>Search:</strong> Manage default search engines.</li>
+                    <li><strong>Privacy & Security:</strong> Tracking protection, passwords, history, cookies.</li>
+                    <li><strong>Sync:</strong> Manage account across devices.</li>
+                </ul>
+
+                <h3 class="font-bold text-lg mb-2 border-b pb-1">🧩 Add-Ons vs. Plug-ins</h3>
+                <div class="flex flex-col gap-3 text-sm mb-6">
+                    <div class="p-3 bg-stone-50 border border-stone-200 rounded">
+                        <strong class="text-accent">Plug-in:</strong> A complete, standalone 3rd-party software installed on the computer that the browser uses. <br><em class="text-stone-500">Ex: Java, Flash Player (to play video).</em>
+                    </div>
+                    <div class="p-3 bg-stone-50 border border-stone-200 rounded">
+                        <strong class="text-accent">Add-on (Extension):</strong> Not a complete program. A small script added directly to the browser for specific functionality. <br><em class="text-stone-500">Ex: Ad-blockers, Grammar checkers.</em>
+                    </div>
+                </div>
+
+                <h3 class="font-bold text-lg mb-2 border-b pb-1">🍪 Cookies</h3>
+                <p class="text-sm mb-2">A small text file containing info transferred by a website to your browser. Helps the server recognize you.</p>
+                <ul class="list-disc pl-5 text-sm text-stone-700 mb-2">
+                    <li>Remembers shopping carts, logins, languages.</li>
+                    <li><strong>Security:</strong> They are harmless plain text. Cannot transmit viruses or read hard disks.</li>
+                    <li>Users can clear/disable them via Privacy settings.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        // Navigation Logic
+        const navButtons = document.querySelectorAll('.nav-btn');
+        const tabs = document.querySelectorAll('.tab-content');
+
+        navButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = btn.getAttribute('data-target');
+                
+                navButtons.forEach(b => {
+                    b.classList.remove('bg-accent', 'text-white', 'shadow-sm');
+                    b.classList.add('bg-stone-100', 'text-stone-600');
+                });
+                btn.classList.remove('bg-stone-100', 'text-stone-600');
+                btn.classList.add('bg-accent', 'text-white', 'shadow-sm');
+
+                tabs.forEach(tab => tab.classList.remove('active'));
+                document.getElementById(target).classList.add('active');
+
+                if(target === 'networks' && !window.chartInitialized) {
+                    initChart();
+                    window.chartInitialized = true;
+                }
+            });
+        });
+
+        // Chart.js Setup (Network Scales)
+        const initChart = () => {
+            const ctx = document.getElementById('networkChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['PAN (Personal)', 'LAN (Local)', 'MAN (Metropolitan)', 'WAN (Wide)'],
+                    datasets: [{
+                        label: 'Approximate Max Coverage (Meters)',
+                        data: [10, 1000, 40000, 10000000],
+                        backgroundColor: [
+                            'rgba(252, 211, 77, 0.8)',
+                            'rgba(5, 150, 105, 0.8)',
+                            'rgba(14, 165, 233, 0.8)',
+                            'rgba(79, 70, 229, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgb(245, 158, 11)',
+                            'rgb(4, 120, 87)',
+                            'rgb(2, 132, 199)',
+                            'rgb(67, 56, 202)'
+                        ],
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            type: 'logarithmic',
+                            title: { display: true, text: 'Meters (Log Scale)' },
+                            grid: { color: '#E7E5E4' }
+                        },
+                        y: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let val = context.raw;
+                                    if(val === 10) return "Up to 10 Meters";
+                                    if(val === 1000) return "Up to 1 Km";
+                                    if(val === 40000) return "Up to 30-40 Km";
+                                    if(val === 10000000) return "Global / Continents";
+                                    return val;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        };
+        initChart();
+        window.chartInitialized = true;
+
+        // Flashcards Logic (Complete List)
+        const hardwareData = [
+            { name: "MODEM", desc: "Converts Digital ↔ Analog signals so data can travel over telephone lines.", trick: "Modulator-Demodulator" },
+            { name: "NIC", desc: "Hardware chip/board inside a PC connecting it to network.", trick: "Contains unique 48-bit MAC Address" },
+            { name: "RJ-45", desc: "An 8-pin physical plastic plug at the end of an Ethernet cable.", trick: "Physical plug connector" },
+            { name: "HUB", desc: "Connects multiple PCs. Broadcasts data to EVERY port.", trick: "Non-Intelligent (Dumb) = Traffic Jams" },
+            { name: "SWITCH", desc: "Connects PCs. Uses MAC addresses to Unicast data ONLY to intended PC.", trick: "Intelligent (Smart) = Efficient" },
+            { name: "REPEATER", desc: "Regenerates and boosts weak signals to travel longer distances.", trick: "Fights Attenuation" },
+            { name: "BRIDGE", desc: "Connects two LANs of the same protocol. Filters traffic.", trick: "Uses MAC to filter" },
+            { name: "ROUTER", desc: "Connects different networks (like LAN to Internet). Uses IP Addresses.", trick: "Navigator (Finds Best Path)" },
+            { name: "GATEWAY", desc: "Connects networks using completely different protocols.", trick: "The Ultimate Translator" },
+            { name: "ACCESS POINT", desc: "Provides wireless connectivity for devices.", trick: "Wi-Fi Hub" },
+            { name: "FIREWALL", desc: "Filters traffic to provide network security.", trick: "The Security Guard" }
+        ];
+
+        const container = document.getElementById('flashcards-container');
+        hardwareData.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'flashcard h-56 md:h-48';
+            card.innerHTML = `
+                <div class="flashcard-inner">
+                    <div class="flashcard-front">
+                        <h3 class="text-xl md:text-2xl font-bold text-accent mb-2">${item.name}</h3>
+                        <p class="text-sm text-stone-500 font-medium">(Click to Flip)</p>
+                    </div>
+                    <div class="flashcard-back">
+                        <p class="font-bold text-ink mb-1 text-sm">Function:</p>
+                        <p class="text-xs md:text-sm mb-2 px-2">${item.desc}</p>
+                        <span class="bg-white px-2 py-1 rounded text-xs font-bold shadow-sm text-amber-700">⭐ ${item.trick}</span>
+                    </div>
+                </div>
+            `;
+            card.addEventListener('click', () => card.classList.toggle('flipped'));
+            container.appendChild(card);
+        });
+
+        // Topologies Logic (Pure CSS implementation, no SVG)
+        const topologies = {
+            mesh: {
+                title: "Mesh Topology",
+                info: "Every node connects directly to EVERY other node.<br><br><strong>Pros:</strong> Very secure, highly reliable.<br><strong>Cons:</strong> Very expensive, complex wiring.",
+                render: () => `
+                    <div class="mesh-container relative bg-stone-100 rounded-lg shadow-inner" style="width: 160px; height: 160px;">
+                        <!-- Nodes -->
+                        <div class="topology-node" style="top: -20px; left: -20px;">1</div>
+                        <div class="topology-node" style="top: -20px; right: -20px;">2</div>
+                        <div class="topology-node" style="bottom: -20px; left: -20px;">3</div>
+                        <div class="topology-node" style="bottom: -20px; right: -20px;">4</div>
+                        <!-- Perimeter Lines -->
+                        <div class="topology-line" style="top: 0; left: 0; right: 0; height: 2px;"></div>
+                        <div class="topology-line" style="bottom: 0; left: 0; right: 0; height: 2px;"></div>
+                        <div class="topology-line" style="top: 0; bottom: 0; left: 0; width: 2px;"></div>
+                        <div class="topology-line" style="top: 0; bottom: 0; right: 0; width: 2px;"></div>
+                        <!-- Cross Lines (Approx diagonal math) -->
+                        <div class="topology-line" style="width: 226px; height: 2px; top: 80px; left: -33px; transform: rotate(45deg);"></div>
+                        <div class="topology-line" style="width: 226px; height: 2px; top: 80px; left: -33px; transform: rotate(-45deg);"></div>
+                    </div>`
+            },
+            ring: {
+                title: "Ring Topology",
+                info: "Each node connects to exactly 2 others forming a circle.<br><br><strong>Data Flow:</strong> Unidirectional (One way).<br><strong>Cons:</strong> If one node breaks, the whole network stops.",
+                render: () => `
+                    <div class="ring-container flex items-center justify-center">
+                        <div class="topology-node" style="top: -20px; left: 76px;">N</div>
+                        <div class="topology-node" style="bottom: -20px; left: 76px;">N</div>
+                        <div class="topology-node" style="left: -20px; top: 76px;">N</div>
+                        <div class="topology-node" style="right: -20px; top: 76px;">N</div>
+                        <div class="absolute text-3xl font-bold text-stone-400">↻</div>
+                    </div>`
+            },
+            bus: {
+                title: "Bus Topology",
+                info: "All nodes connect to ONE central backbone cable.<br><br><strong>Pros:</strong> Cheap, easy to setup.<br><strong>Cons:</strong> If backbone breaks, everything fails.",
+                render: () => `
+                    <div class="bus-container">
+                        <div class="bus-line"></div>
+                        <div class="topology-line" style="width: 2px; height: 30px; left: 20%; top: 30%;"></div>
+                        <div class="topology-line" style="width: 2px; height: 30px; left: 50%; top: 30%;"></div>
+                        <div class="topology-line" style="width: 2px; height: 30px; left: 80%; top: 50%;"></div>
+                        
+                        <div class="topology-node" style="left: calc(20% - 20px); top: 5%;">N</div>
+                        <div class="topology-node" style="left: calc(50% - 20px); top: 5%;">N</div>
+                        <div class="topology-node" style="left: calc(80% - 20px); bottom: 5%;">N</div>
+                        <div class="absolute right-0 top-1/2 -mt-3 text-[10px] bg-stone-300 px-1 font-bold">TERM</div>
+                    </div>`
+            },
+            star: {
+                title: "Star Topology",
+                info: "All PCs connect to a central Hub or Switch.<br><br><strong>Pros:</strong> Very fast; if one PC fails, others keep working.<br><strong>Cons:</strong> If the central Hub fails, the network dies.",
+                render: () => `
+                    <div class="star-container flex items-center justify-center">
+                        <div class="topology-node bg-amber-500 w-16 h-16" style="z-index: 20;">HUB</div>
+                        <div class="topology-node" style="top: 0; left: 80px;">N</div>
+                        <div class="topology-node" style="bottom: 0; left: 80px;">N</div>
+                        <div class="topology-node" style="left: 0; top: 80px;">N</div>
+                        <div class="topology-node" style="right: 0; top: 80px;">N</div>
+                        
+                        <div class="topology-line" style="width: 2px; height: 100px; left: 99px; top: 0;"></div>
+                        <div class="topology-line" style="width: 100px; height: 2px; top: 99px; left: 0;"></div>
+                    </div>`
+            },
+            tree: {
+                title: "Tree / Hybrid Topology",
+                info: "Hierarchical topology containing branches (Combines Star + Bus).<br><br><strong>Usage:</strong> Heavily used to create WANs by connecting multiple LANs together. Data flows from central device down the branches.",
+                render: () => `
+                    <div class="tree-container">
+                        <!-- Main Backbone -->
+                        <div class="topology-line" style="width: 140px; height: 4px; top: 80px; left: 30px;"></div>
+                        <!-- Branches to Hubs -->
+                        <div class="topology-line" style="width: 2px; height: 30px; left: 60px; top: 80px;"></div>
+                        <div class="topology-line" style="width: 2px; height: 30px; left: 140px; top: 50px;"></div>
+                        
+                        <!-- Hub 1 -->
+                        <div class="topology-node bg-amber-500 w-10 h-10" style="bottom: 50px; left: 40px; font-size: 10px;">HUB</div>
+                        <div class="topology-line" style="width: 20px; height: 2px; left: 30px; bottom: 70px;"></div>
+                        <div class="topology-node" style="bottom: 60px; left: -5px; width:20px; height:20px; font-size: 8px;">N</div>
+                        <div class="topology-line" style="width: 20px; height: 2px; left: 80px; bottom: 70px;"></div>
+                        <div class="topology-node" style="bottom: 60px; left: 100px; width:20px; height:20px; font-size: 8px;">N</div>
+
+                        <!-- Hub 2 -->
+                        <div class="topology-node bg-amber-500 w-10 h-10" style="top: 10px; left: 120px; font-size: 10px;">HUB</div>
+                        <div class="topology-line" style="width: 20px; height: 2px; left: 110px; top: 30px;"></div>
+                        <div class="topology-node" style="top: 20px; left: 85px; width:20px; height:20px; font-size: 8px;">N</div>
+                        <div class="topology-line" style="width: 20px; height: 2px; left: 160px; top: 30px;"></div>
+                        <div class="topology-node" style="top: 20px; left: 180px; width:20px; height:20px; font-size: 8px;">N</div>
+                    </div>`
+            }
+        };
+
+        const topoBtns = document.querySelectorAll('.topo-btn');
+        const topoVisual = document.getElementById('topo-visual');
+        const topoInfo = document.getElementById('topo-info');
+
+        const loadTopology = (key) => {
+            topoBtns.forEach(b => {
+                b.classList.remove('bg-accent', 'text-white');
+                b.classList.add('bg-stone-200', 'text-stone-700');
+            });
+            document.querySelector(`[data-topo="${key}"]`).classList.remove('bg-stone-200', 'text-stone-700');
+            document.querySelector(`[data-topo="${key}"]`).classList.add('bg-accent', 'text-white');
+
+            topoVisual.innerHTML = topologies[key].render();
+            topoInfo.innerHTML = `<h3 class="font-hand text-2xl font-bold mb-2 pt-2">${topologies[key].title}</h3><p class="text-stone-800 leading-relaxed text-sm md:text-base">${topologies[key].info}</p>`;
+        };
+
+        topoBtns.forEach(btn => {
+            btn.addEventListener('click', () => loadTopology(btn.getAttribute('data-topo')));
+        });
+        loadTopology('mesh'); // initial load
+
+        // Static vs Dynamic Toggle Logic
+        const btnStatic = document.getElementById('btn-static');
+        const btnDynamic = document.getElementById('btn-dynamic');
+        const pageDetails = document.getElementById('page-details');
+
+        btnStatic.addEventListener('click', () => {
+            btnStatic.classList.replace('bg-stone-200', 'bg-white');
+            btnStatic.classList.replace('text-stone-600', 'text-black');
+            btnStatic.classList.add('shadow');
+            
+            btnDynamic.classList.replace('bg-white', 'bg-transparent');
+            btnDynamic.classList.remove('shadow');
+            btnDynamic.classList.replace('text-black', 'text-stone-600');
+
+            pageDetails.innerHTML = `
+                <p class="font-bold text-accent">Static Web Page (.htm / .html)</p>
+                <p class="mt-1">Content remains the same for every user.</p>
+                <p class="mt-1 text-stone-600"><strong>Processing:</strong> Server simply locates the page and sends it. No server-side processing.</p>
+                <p class="mt-1 text-stone-600"><strong>Languages:</strong> HTML, CSS, JavaScript. <strong>Speed:</strong> Loads faster.</p>
+            `;
+        });
+
+        btnDynamic.addEventListener('click', () => {
+            btnDynamic.classList.add('bg-white', 'text-black', 'shadow');
+            btnDynamic.classList.remove('bg-transparent', 'text-stone-600');
+            
+            btnStatic.classList.replace('bg-white', 'bg-transparent');
+            btnStatic.classList.remove('shadow');
+            btnStatic.classList.replace('text-black', 'text-stone-600');
+
+            pageDetails.innerHTML = `
+                <p class="font-bold text-accent">Dynamic Web Page (.php, .asp, etc.)</p>
+                <p class="mt-1">Content changes based on user choices, time, or DB.</p>
+                <p class="mt-1 text-stone-600"><strong>Processing:</strong> Server performs processing (fetches data from DB) before sending.</p>
+                <p class="mt-1 text-stone-600"><strong>Languages:</strong> PHP, Python, Java. <strong>Speed:</strong> Slower to load.</p>
+            `;
+        });
+
+        // Hosting Steps Logic
+        const stepBtns = document.querySelectorAll('.step-btn');
+        stepBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const content = btn.nextElementSibling;
+                const icon = btn.querySelector('.text-xl');
+                
+                if (content.classList.contains('hidden')) {
+                    content.classList.remove('hidden');
+                    icon.innerText = '-';
+                    btn.classList.replace('bg-stone-800', 'bg-stone-900');
+                } else {
+                    content.classList.add('hidden');
+                    icon.innerText = '+';
+                    btn.classList.replace('bg-stone-900', 'bg-stone-800');
+                }
+            });
+        });
+
+    });
+</script>
+</body>
+</html>
